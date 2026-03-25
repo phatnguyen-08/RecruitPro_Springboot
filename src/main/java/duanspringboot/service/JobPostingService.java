@@ -1,9 +1,15 @@
 package duanspringboot.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -119,8 +125,8 @@ public class JobPostingService {
     }
 
     // 4. Lấy danh sách tin đang mở với bộ lọc (Filter)
-    public List<JobPostingResponse> searchJobs(String location, Integer minSalary, String title) {
-        return jobPostingRepository.filterJobs(JobStatus.OPEN, location, minSalary, title)
+    public List<JobPostingResponse> searchJobs(String location, Integer minSalary, String title, Long fieldId) {
+        return jobPostingRepository.filterJobs(JobStatus.OPEN, location, minSalary, title, fieldId)
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
@@ -150,6 +156,50 @@ public class JobPostingService {
         return mapToResponse(jobPostingRepository.save(job));
     }
 
+    // 7. Lấy danh sách tin với phân trang (cho recruiter)
+    public Map<String, Object> getMyCompanyJobsPaginated(Long userId, int page, int size) {
+        Company company = companyRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy hồ sơ công ty"));
+        
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<JobPosting> jobPage = jobPostingRepository.findByCompanyId(company.getId(), pageable);
+        
+        List<JobPostingResponse> jobs = jobPage.getContent().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("jobs", jobs);
+        result.put("currentPage", jobPage.getNumber() + 1);
+        result.put("totalPages", jobPage.getTotalPages());
+        result.put("totalItems", jobPage.getTotalElements());
+        result.put("hasNext", jobPage.hasNext());
+        result.put("hasPrevious", jobPage.hasPrevious());
+        
+        return result;
+    }
+
+    // 8. Tìm kiếm với phân trang
+    public Map<String, Object> searchJobsPaginated(String location, Integer minSalary, String title, int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<JobPosting> jobPage = jobPostingRepository.filterJobsPaginated(
+                JobStatus.OPEN, location, minSalary, title, pageable);
+        
+        List<JobPostingResponse> jobs = jobPage.getContent().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("jobs", jobs);
+        result.put("currentPage", jobPage.getNumber() + 1);
+        result.put("totalPages", jobPage.getTotalPages());
+        result.put("totalItems", jobPage.getTotalElements());
+        result.put("hasNext", jobPage.hasNext());
+        result.put("hasPrevious", jobPage.hasPrevious());
+        
+        return result;
+    }
+
     private JobPostingResponse mapToResponse(JobPosting job) {
         List<String> skills = (job.getSkills() != null) 
             ? job.getSkills().stream().map(JobSkill::getSkillName).collect(Collectors.toList())
@@ -175,6 +225,7 @@ public class JobPostingService {
                 .createdAt(job.getCreatedAt())
                 .applicationCount(job.getApplications() != null ? job.getApplications().size() : 0)
                 .requiredSkills(skills)
+                .jobFieldName(job.getJobField() != null ? job.getJobField().getName() : null)
                 .build();
     }
 }

@@ -244,6 +244,41 @@ async function saveCandidateProfile(e) {
     submitBtn.disabled = true;
     submitBtn.textContent = 'Đang lưu...';
 
+    let resumeUrl = null;
+    const cvFile = document.getElementById('edit-cv-file')?.files[0];
+    if (cvFile) {
+        const formData = new FormData();
+        formData.append('file', cvFile);
+        const token = localStorage.getItem('jwt_token');
+        try {
+            const uploadRes = await fetch('/api/files/upload', {
+                method: 'POST',
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+                body: formData
+            });
+            if (uploadRes.ok) {
+                const uploadData = await uploadRes.json();
+                resumeUrl = uploadData.url;
+            } else {
+                let errMsg = 'Tải CV lên thất bại. Vui lòng thử lại.';
+                try {
+                    const errObj = await uploadRes.json();
+                    if (errObj.error) errMsg += ` Lỗi: ${errObj.error}`;
+                } catch(e) {}
+                alert(errMsg);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                return;
+            }
+        } catch (e) {
+            console.error('Lỗi upload file:', e);
+            alert('Lỗi kết nối khi tải CV.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            return;
+        }
+    }
+
     const data = {
         fullName: document.getElementById('edit-fullName').value,
         headline: document.getElementById('edit-headline').value,
@@ -251,6 +286,10 @@ async function saveCandidateProfile(e) {
         address: document.getElementById('edit-address').value,
         summary: document.getElementById('edit-summary').value
     };
+    
+    if (resumeUrl) {
+        data.resumeUrl = resumeUrl;
+    }
 
     try {
         const response = await fetchWithAuth('/api/candidate/profile', {
@@ -283,18 +322,115 @@ async function saveCandidateProfile(e) {
     }
 }
 
+/**
+ * Tạo hồ sơ ứng viên mới
+ */
+async function createCandidateProfile(e) {
+    e.preventDefault();
+    console.log("Đang bắt đầu tạo hồ sơ...");
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalBtnText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Đang tạo...';
+
+    let resumeUrl = null;
+    const cvFile = document.getElementById('create-cv-file')?.files[0];
+    if (cvFile) {
+        const formData = new FormData();
+        formData.append('file', cvFile);
+        const token = localStorage.getItem('jwt_token');
+        try {
+            const uploadRes = await fetch('/api/files/upload', {
+                method: 'POST',
+                headers: token ? { 'Authorization': 'Bearer ' + token } : {},
+                body: formData
+            });
+            if (uploadRes.ok) {
+                const uploadData = await uploadRes.json();
+                resumeUrl = uploadData.url;
+            } else {
+                let errMsg = 'Tải CV lên thất bại. Vui lòng thử lại.';
+                try {
+                    const errObj = await uploadRes.json();
+                    if (errObj.error) errMsg += ` Lỗi: ${errObj.error}`;
+                } catch(e) {}
+                alert(errMsg);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalBtnText;
+                return;
+            }
+        } catch (e) {
+            console.error('Lỗi upload file:', e);
+            alert('Lỗi kết nối khi tải CV.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+            return;
+        }
+    }
+
+    const data = {
+        fullName: document.getElementById('create-fullName').value,
+        headline: document.getElementById('create-headline').value,
+        phone: document.getElementById('create-phone').value,
+        address: document.getElementById('create-address').value,
+        summary: document.getElementById('create-summary').value,
+        resumeUrl: resumeUrl
+    };
+
+    try {
+        const response = await fetchWithAuth('/api/candidate/profile', {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('Tạo hồ sơ thành công!');
+            // Đóng modal
+            const modalElement = document.getElementById('createProfileModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) modal.hide();
+
+            location.reload();
+        } else {
+            let errorMessage = 'Không thể tạo hồ sơ';
+            try {
+                const errData = await response.json();
+                errorMessage = errData.message || errorMessage;
+            } catch (e) { }
+            alert('Lỗi: ' + errorMessage);
+        }
+    } catch (error) {
+        console.error('Create profile error:', error);
+        alert('Lỗi kết nối khi tạo hồ sơ. Vui lòng thử lại sau.');
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalBtnText;
+    }
+}
+
 
 /**
- * Nạp danh sách việc làm (Trang chủ)
+ * Nạp danh sách việc làm (Trang chủ) - AJAX Search
  */
-async function loadAllJobs(title = '', location = '') {
+let searchTimeout = null;
+
+async function loadAllJobs(title = '', location = '', fieldId = '') {
     const container = document.getElementById('jobs-list-container');
     if (!container) return;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border spinner-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+            <p class="text-muted">Đang tìm kiếm việc làm phù hợp...</p>
+        </div>`;
 
     let url = '/api/jobs/search';
     const params = new URLSearchParams();
     if (title) params.append('title', title);
     if (location) params.append('location', location);
+    if (fieldId) params.append('fieldId', fieldId);
     if (params.toString()) url += '?' + params.toString();
 
     try {
@@ -304,35 +440,96 @@ async function loadAllJobs(title = '', location = '') {
         if (jobs.length === 0) {
             container.innerHTML = `
                 <div class="col-12 text-center py-5">
-                    <p class="text-muted">Không tìm thấy việc làm phù hợp với tiêu chí của bạn.</p>
+                    <div class="mb-4">
+                        <i class="fas fa-search fa-4x text-muted opacity-50"></i>
+                    </div>
+                    <h5 class="text-muted mb-2">Không tìm thấy việc làm</h5>
+                    <p class="text-muted mb-0">Thử thay đổi từ khóa tìm kiếm hoặc xem tất cả việc làm.</p>
+                    <button onclick="loadAllJobs()" class="btn btn-outline-primary mt-3">
+                        <i class="fas fa-refresh me-2"></i>Xem tất cả
+                    </button>
                 </div>`;
             return;
         }
 
-        container.innerHTML = jobs.map(job => `
+        container.innerHTML = `
+            <div class="col-12 mb-3">
+                <p class="text-muted mb-0">
+                    <i class="fas fa-check-circle text-success me-1"></i>
+                    Tìm thấy <strong>${jobs.length}</strong> việc làm phù hợp
+                </p>
+            </div>
+            ${jobs.map(job => `
             <div class="col-md-6 col-lg-4">
                 <div class="card job-card h-100 border-0 shadow-sm">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <h5 class="card-title text-primary mb-0 fw-bold">${job.title}</h5>
-                            <span class="badge bg-light text-dark">${job.jobType}</span>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="flex-grow-1">
+                                <h5 class="card-title text-primary fw-bold mb-1">${job.title}</h5>
+                                <h6 class="card-subtitle text-muted">${job.companyName}</h6>
+                            </div>
+                            <span class="badge bg-light text-dark border px-3 py-2 flex-shrink-0">${job.jobType}</span>
                         </div>
-                        <h6 class="card-subtitle mb-2 text-muted">${job.companyName}</h6>
+                        
                         <div class="mb-3">
-                            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> ${job.location || 'Nơi làm việc'}</small>
-                            <small class="text-muted ms-3"><i class="fas fa-money-bill-wave me-1"></i> ${job.salaryMin ? job.salaryMin + ' - ' + job.salaryMax : 'Thỏa thuận'}</small>
+                            <div class="d-flex align-items-center text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                                <small>${job.location || 'Nơi làm việc'}</small>
+                            </div>
+                            ${job.jobFieldName ? `
+                            <div class="d-flex align-items-center text-muted mb-2">
+                                <i class="fas fa-briefcase me-2 text-primary"></i>
+                                <small>${job.jobFieldName}</small>
+                            </div>
+                            ` : ''}
+                            <div class="d-flex align-items-center text-muted">
+                                <i class="fas fa-money-bill-wave me-2 text-primary"></i>
+                                <small>${job.salaryMin ? job.salaryMin + ' - ' + job.salaryMax : 'Thỏa thuận'}</small>
+                            </div>
                         </div>
+                        
+                        <p class="card-text text-muted text-truncate-2 small">${job.description || 'Mô tả công việc'}</p>
                     </div>
-                    <div class="card-footer bg-white border-0 pb-3">
-                        <a href="/jobs/${job.id}" class="btn btn-outline-primary w-100">Chi tiết</a>
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <div class="d-flex gap-2">
+                            <a href="/jobs/${job.id}" class="btn btn-outline-primary flex-grow-1">
+                                <i class="fas fa-eye me-2"></i>Chi tiết
+                            </a>
+                            <button onclick="applyForJob(${job.id})" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-paper-plane me-2"></i>Ứng tuyển
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        `).join('');
+        `).join('')}`;
     } catch (error) {
         console.error('Load all jobs error:', error);
-        container.innerHTML = '<div class="col-12 text-center text-danger">Lỗi nạp dữ liệu từ máy chủ.</div>';
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                <h5 class="text-danger">Đã xảy ra lỗi</h5>
+                <p class="text-muted">Không thể tải danh sách việc làm. Vui lòng thử lại.</p>
+                <button onclick="loadAllJobs()" class="btn btn-primary">
+                    <i class="fas fa-refresh me-2"></i>Thử lại
+                </button>
+            </div>`;
     }
+}
+
+/**
+ * Debounced search - tìm kiếm tự động sau khi ngừng gõ
+ */
+function debouncedSearch() {
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    searchTimeout = setTimeout(() => {
+        const title = document.getElementById('searchTitle')?.value || '';
+        const field = document.getElementById('searchField')?.value || '';
+        const location = document.getElementById('searchLocation')?.value || '';
+        loadAllJobs(title, location, field);
+    }, 500); // 500ms debounce
 }
 
 // ==================== INTERVIEW FUNCTIONS ====================
@@ -498,6 +695,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const profileForm = document.getElementById('candidateProfileForm');
     if (profileForm) profileForm.addEventListener('submit', saveCandidateProfile);
+
+    const createProfileForm = document.getElementById('createProfileForm');
+    if (createProfileForm) createProfileForm.addEventListener('submit', createCandidateProfile);
 
     const interviewForm = document.getElementById('scheduleInterviewForm');
     if (interviewForm) interviewForm.addEventListener('submit', scheduleInterview);

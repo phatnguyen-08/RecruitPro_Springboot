@@ -1,5 +1,22 @@
 package duanspringboot.controller;
 
+import java.util.List;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import duanspringboot.dto.job.JobPostingRequest;
 import duanspringboot.dto.job.JobPostingResponse;
 import duanspringboot.enums.JobStatus;
@@ -7,13 +24,6 @@ import duanspringboot.security.CustomUserDetails;
 import duanspringboot.service.JobPostingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/jobs")
@@ -59,8 +69,9 @@ public class JobPostingController {
     public ResponseEntity<List<JobPostingResponse>> searchJobs(
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer minSalary,
-            @RequestParam(required = false) String title) {
-        return ResponseEntity.ok(jobPostingService.searchJobs(location, minSalary, title));
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Long fieldId) {
+        return ResponseEntity.ok(jobPostingService.searchJobs(location, minSalary, title, fieldId));
     }
 
     // 5. Lấy tin tuyển dụng của chính mình (Recruiter quản lý)
@@ -86,5 +97,27 @@ public class JobPostingController {
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = ((CustomUserDetails) userDetails).getId();
         return ResponseEntity.ok(jobPostingService.changeStatus(id, status, userId));
+    }
+
+    // 8. Tìm kiếm việc làm với phân trang (Công khai)
+    @GetMapping("/search/paginated")
+    public ResponseEntity<Map<String, Object>> searchJobsPaginated(
+            @RequestParam(required = false) String location,
+            @RequestParam(required = false) Integer minSalary,
+            @RequestParam(required = false) String title,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(jobPostingService.searchJobsPaginated(location, minSalary, title, page, size));
+    }
+
+    // 9. Lấy tin tuyển dụng của chính mình với phân trang (Recruiter)
+    @GetMapping("/my-jobs/paginated")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<Map<String, Object>> getMyJobsPaginated(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Long userId = ((CustomUserDetails) userDetails).getId();
+        return ResponseEntity.ok(jobPostingService.getMyCompanyJobsPaginated(userId, page, size));
     }
 }

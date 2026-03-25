@@ -1,41 +1,70 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+<html xmlns:th="http://www.theleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/main-layout}">
 <head>
-    <title>Đăng nhập</title>
+    <title>Đăng nhập - J2PP</title>
     <link th:href="@{/css/auth.css}" rel="stylesheet">
 </head>
 <body>
-<div layout:fragment="content" class="row justify-content-center">
-    <div class="col-md-5">
-        <div class="card shadow-lg border-0 mt-5">
-            <div class="card-body p-5">
-                <div class="text-center mb-4">
-                    <h2 class="fw-bold">Chào mừng trở lại</h2>
-                    <p class="text-muted">Đăng nhập để tiếp tục hành trình sự nghiệp</p>
+<div layout:fragment="content">
+    <div class="auth-page">
+        <div class="auth-card card">
+            <div class="card-body">
+                <div class="auth-header">
+                    <div class="auth-icon">
+                        <i class="fas fa-sign-in-alt"></i>
+                    </div>
+                    <h2>Chào mừng trở lại!</h2>
+                    <p>Đăng nhập để tiếp tục hành trình sự nghiệp của bạn</p>
                 </div>
-                <form id="loginForm">
-                    <div class="mb-3">
+
+                <form id="loginForm" class="auth-form">
+                    <div id="loginAlert" class="auth-alert alert-danger hidden" role="alert">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <span id="loginAlertMessage"></span>
+                    </div>
+
+                    <div class="form-group">
                         <label for="email" class="form-label">Email</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                            <input type="email" class="form-control" id="email" required placeholder="name@example.com">
+                            <input type="email" class="form-control" id="email" required placeholder="name@example.com" autocomplete="email">
                         </div>
                     </div>
-                    <div class="mb-3">
+
+                    <div class="form-group">
                         <label for="password" class="form-label">Mật khẩu</label>
                         <div class="input-group">
                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                            <input type="password" class="form-control" id="password" required placeholder="••••••••">
+                            <input type="password" class="form-control" id="password" required placeholder="Nhập mật khẩu của bạn" autocomplete="current-password">
+                            <span class="input-group-text password-toggle" onclick="togglePassword()">
+                                <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                            </span>
                         </div>
                     </div>
-                    <div class="d-grid mb-3">
-                        <button type="submit" class="btn btn-primary btn-lg">Đăng nhập</button>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="rememberMe">
+                            <label class="form-check-label" for="rememberMe">Ghi nhớ đăng nhập</label>
+                        </div>
+                        <div class="forgot-password">
+                            <a href="#">Quên mật khẩu?</a>
+                        </div>
                     </div>
-                    <div class="text-center mt-4">
-                        <p class="mb-0 text-muted">Chưa có tài khoản? <a th:href="@{/register}" class="text-primary fw-bold">Đăng ký ngay</a></p>
-                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-submit" id="loginBtn">
+                        <span id="loginBtnText">Đăng nhập</span>
+                        <span id="loginBtnLoading" class="hidden">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Đang xử lý...
+                        </span>
+                    </button>
                 </form>
+
+                <div class="auth-footer">
+                    <p>Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a></p>
+                </div>
             </div>
         </div>
     </div>
@@ -43,6 +72,21 @@
 
 <th:block layout:fragment="scripts">
     <script th:src="@{/js/auth.js}"></script>
+    <script>
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const icon = document.getElementById('passwordToggleIcon');
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
 </th:block>
 </body>
 </html>

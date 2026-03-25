@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const role = document.getElementById('role').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
 
             try {
                 const response = await fetch('/api/auth/register', {

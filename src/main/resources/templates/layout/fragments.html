@@ -7,14 +7,16 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="notificationTitle">Thông báo</h5>
+                <h5 class="modal-title" id="notificationTitle">
+                    <i class="fas fa-bell me-2 text-primary"></i>Thông báo
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body" id="notificationMessage">
                 <!-- Message will be injected here -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Đóng</button>
             </div>
         </div>
     </div>
@@ -23,20 +25,52 @@
 <!-- Job Card Fragment -->
 <div th:fragment="jobCard(job)" class="card job-card h-100 border-0 shadow-sm">
     <div class="card-body">
-        <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="card-title text-primary mb-0" th:text="${job.title}">Senior Java Developer</h5>
-            <span class="badge bg-light text-dark" th:text="${job.jobType}">Toàn thời gian</span>
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="flex-grow-1">
+                <h5 class="card-title text-primary fw-bold mb-1" th:text="${job.title}">Senior Java Developer</h5>
+                <h6 class="card-subtitle text-muted" th:text="${job.companyName}">Google Vietnam</h6>
+            </div>
+            <span class="badge bg-light text-dark border px-3 py-2 flex-shrink-0" th:text="${job.jobType}">Toàn thời gian</span>
         </div>
-        <h6 class="card-subtitle mb-2 text-muted" th:text="${job.companyName}">Google Vietnam</h6>
+        
         <div class="mb-3">
-            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> <span th:text="${job.location}">TP. Hồ Chí Minh</span></small>
-            <small class="text-muted ms-3"><i class="fas fa-money-bill-wave me-1"></i> <span th:text="${job.salaryRange}">Thỏa thuận</span></small>
+            <div class="d-flex align-items-center text-muted mb-2">
+                <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                <small th:text="${job.location}">TP. Hồ Chí Minh</small>
+            </div>
+            <div class="d-flex align-items-center text-muted">
+                <i class="fas fa-money-bill-wave me-2 text-primary"></i>
+                <small th:text="${job.salaryRange != null && job.salaryRange != '' ? job.salaryRange : 'Thỏa thuận'}">Thỏa thuận</small>
+            </div>
         </div>
-        <p class="card-text text-truncate-3" th:text="${job.description}">Mô tả ngắn gọn về công việc và yêu cầu...</p>
+        
+        <p class="card-text text-muted text-truncate-2 small" th:text="${job.description}">Mô tả ngắn gọn về công việc và yêu cầu...</p>
     </div>
-    <div class="card-footer bg-white border-0 pb-3">
-        <a th:href="@{'/jobs/' + ${job.id}}" class="btn btn-outline-primary w-100">Chi tiết</a>
+    <div class="card-footer bg-white border-0 pt-0">
+        <div class="d-flex gap-2">
+            <a th:href="@{'/jobs/' + ${job.id}}" class="btn btn-outline-primary flex-grow-1">
+                <i class="fas fa-eye me-2"></i>Chi tiết
+            </a>
+            <button class="btn btn-primary flex-grow-1" th:attr="onclick='applyForJob(' + ${job.id} + ')'">
+                <i class="fas fa-paper-plane me-2"></i>Ứng tuyển
+            </button>
+        </div>
     </div>
+</div>
+
+<!-- Empty State Fragment -->
+<div th:fragment="emptyState(icon, title, message)" class="text-center py-5">
+    <div class="mb-4">
+        <i class="fas fa-${icon} fa-4x text-muted opacity-50"></i>
+    </div>
+    <h4 class="text-muted mb-2" th:text="${title}">Không có dữ liệu</h4>
+    <p class="text-muted mb-0" th:text="${message}">Không có thông tin để hiển thị.</p>
+</div>
+
+<!-- Loading State Fragment -->
+<div th:fragment="loadingState(message)" class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+    <p class="text-muted mb-0" th:text="${message}">Đang tải...</p>
 </div>
 
 </body>

@@ -41,6 +41,10 @@ public class JobPosting {
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
+    @ManyToOne
+    @JoinColumn(name = "job_field_id")
+    private JobField jobField;
+
     @Column(nullable = false)
     private String title;
 

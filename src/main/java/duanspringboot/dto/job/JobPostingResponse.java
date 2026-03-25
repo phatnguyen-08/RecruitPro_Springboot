@@ -29,4 +29,5 @@ public class JobPostingResponse {
     private LocalDateTime createdAt;
     private Integer applicationCount;
     private List<String> requiredSkills;
+    private String jobFieldName;
 }

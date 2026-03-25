@@ -1,8 +1,7 @@
 package duanspringboot.config;
 
-import duanspringboot.security.JwtFilter;
-import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
+import java.util.Arrays;
+
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,8 +17,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.Collections;
+import duanspringboot.security.JwtFilter;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -35,7 +35,7 @@ public class SecurityConfig {
         return (web) -> web.ignoring()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error", "/static/**",
-                        "/resources/**");
+                        "/resources/**", "/uploads/**");
     }
 
     @Bean
@@ -52,6 +52,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/jobs/search").permitAll()
                         .requestMatchers("/api/jobs/{id}").permitAll()
+                        .requestMatchers("/api/job-fields/**").permitAll()
 
                         // Phân quyền API
                         .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")

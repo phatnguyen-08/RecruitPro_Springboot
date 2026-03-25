@@ -1,4 +1,5 @@
 package duanspringboot.entity;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +20,10 @@ public class Notification {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "company_id")
+    private Company company;
 
     private String title;
 
