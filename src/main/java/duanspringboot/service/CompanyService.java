@@ -99,6 +99,7 @@ public class CompanyService {
                 .industry(company.getIndustry())
                 .companySize(company.getCompanySize())
                 .description(company.getDescription())
+                .logoUrl(company.getLogoUrl())
                 .build();
     }
 }

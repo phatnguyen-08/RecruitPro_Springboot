@@ -34,7 +34,8 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring()
                 .requestMatchers(PathRequest.toStaticResources().atCommonLocations())
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error", "/static/**", "/resources/**");
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/error", "/static/**",
+                        "/resources/**");
     }
 
     @Bean
@@ -44,21 +45,22 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập View HTML
-                        .requestMatchers("/", "/login", "/register", "/jobs/**", "/candidate/**", "/recruiter/**").permitAll()
-                        
+                        .requestMatchers("/", "/login", "/register", "/jobs/**", "/candidate/**", "/recruiter/**")
+                        .permitAll()
+
                         // API public
                         .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/jobs/open", "/api/jobs/search").permitAll()
-                        
+                        .requestMatchers("/api/jobs/search").permitAll()
+                        .requestMatchers("/api/jobs/{id}").permitAll()
+
                         // Phân quyền API
                         .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
                         .requestMatchers("/api/companies/**").hasRole("RECRUITER")
                         .requestMatchers("/api/jobs/**").hasRole("RECRUITER")
                         .requestMatchers("/api/applications/**").authenticated()
                         .requestMatchers("/api/interviews/**").hasRole("RECRUITER")
-                        
-                        .anyRequest().authenticated()
-                )
+
+                        .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {
                             String path = request.getServletPath();
@@ -67,8 +69,7 @@ public class SecurityConfig {
                             } else {
                                 response.sendRedirect("/login");
                             }
-                        })
-                )
+                        }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -80,10 +81,14 @@ public class SecurityConfig {
     public UrlBasedCorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(Collections.singletonList("*"));
+        config.setAllowedOriginPatterns(Arrays.asList(
+                "http://localhost:8080",
+                "http://localhost:3000",
+                "http://127.0.0.1:8080",
+                "http://127.0.0.1:3000"));
         config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;

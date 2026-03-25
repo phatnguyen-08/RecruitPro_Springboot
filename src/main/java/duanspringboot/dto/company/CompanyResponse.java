@@ -16,4 +16,5 @@ public class CompanyResponse {
     private String industry;
     private String companySize;
     private String description;
+    private String logoUrl;
 }

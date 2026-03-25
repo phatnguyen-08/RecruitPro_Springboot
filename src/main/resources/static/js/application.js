@@ -11,7 +11,7 @@ async function applyForJob(jobId) {
 
     const coverLetter = prompt("Vui lòng nhập thư giới thiệu của bạn (tùy chọn):");
     if (coverLetter === null) return;
-    
+
     try {
         const response = await fetchWithAuth('/api/applications', {
             method: 'POST',
@@ -79,7 +79,7 @@ async function loadMyJobs() {
  */
 async function deleteJob(id) {
     if (!confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này?')) return;
-    
+
     try {
         const response = await fetchWithAuth(`/api/jobs/${id}`, { method: 'DELETE' });
         if (response.ok) {
@@ -137,9 +137,9 @@ async function saveCompanyInfo(e) {
     const data = {
         name: document.getElementById('companyName').value,
         website: document.getElementById('companyWebsite').value,
-        location: document.getElementById('companyLocation').value,
-        description: document.getElementById('companyDescription').value,
-        logo: document.getElementById('logoUrl').value
+        industry: document.getElementById('companyIndustry')?.value || '',
+        companySize: document.getElementById('companySize')?.value || '',
+        description: document.getElementById('companyDescription').value
     };
 
     const url = companyId ? `/api/companies/${companyId}` : '/api/companies';
@@ -217,13 +217,13 @@ async function updateApplicationStatus(applicationId, status) {
             method: 'PUT',
             body: JSON.stringify({ status })
         });
-        
+
         if (response.ok) {
             alert('Cập nhật trạng thái thành công!');
         } else {
             const errData = await response.json();
             alert('Lỗi: ' + (errData.message || 'Không thể cập nhật trạng thái'));
-            location.reload(); 
+            location.reload();
         }
     } catch (error) {
         console.error('Update status error:', error);
@@ -271,7 +271,7 @@ async function saveCandidateProfile(e) {
             try {
                 const errData = await response.json();
                 errorMessage = errData.message || errorMessage;
-            } catch (e) {}
+            } catch (e) { }
             alert('Lỗi: ' + errorMessage);
         }
     } catch (error) {
@@ -335,8 +335,161 @@ async function loadAllJobs(title = '', location = '') {
     }
 }
 
-// Initialization
-document.addEventListener('DOMContentLoaded', function() {
+// ==================== INTERVIEW FUNCTIONS ====================
+
+/**
+ * Nạp danh sách phỏng vấn (Recruiter)
+ */
+async function loadInterviews() {
+    const container = document.getElementById('interviews-container');
+    if (!container) return;
+
+    try {
+        const response = await fetchWithAuth('/api/interviews/my');
+        const interviews = await response.json();
+
+        if (interviews.length === 0) {
+            container.innerHTML = '<tr><td colspan="6" class="text-center py-5"><p class="text-muted">Chưa có lịch phỏng vấn nào.</p></td></tr>';
+            return;
+        }
+
+        container.innerHTML = interviews.map(interview => `
+            <tr>
+                <td class="ps-4">
+                    <h6 class="mb-0 fw-bold">${interview.candidateName}</h6>
+                    <small class="text-muted">${interview.candidateEmail}</small>
+                </td>
+                <td>${interview.jobTitle}</td>
+                <td><span class="text-primary fw-bold">${formatDateTime(interview.scheduledAt)}</span></td>
+                <td><span class="badge bg-light text-dark border">${interview.type}</span></td>
+                <td><span class="badge ${getInterviewResultBadge(interview.result)}">${interview.result}</span></td>
+                <td class="text-center pe-4">
+                    <div class="btn-group">
+                        <button onclick="openInterviewDetail(${interview.id})" class="btn btn-sm btn-outline-secondary" title="Chi tiết"><i class="fas fa-info-circle"></i></button>
+                        <button onclick="cancelInterview(${interview.id})" class="btn btn-sm btn-outline-danger" title="Hủy bỏ"><i class="fas fa-trash"></i></button>
+                    </div>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        console.error('Load interviews error:', error);
+    }
+}
+
+function getInterviewResultBadge(result) {
+    switch (result) {
+        case 'PASSED': return 'bg-success';
+        case 'FAILED': return 'bg-danger';
+        case 'PENDING': return 'bg-warning text-dark';
+        default: return 'bg-secondary';
+    }
+}
+
+function formatDateTime(dateTimeStr) {
+    if (!dateTimeStr) return '';
+    const date = new Date(dateTimeStr);
+    return date.toLocaleString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+/**
+ * Mở modal chi tiết phỏng vấn
+ */
+async function openInterviewDetail(interviewId) {
+    try {
+        const response = await fetchWithAuth(`/api/interviews/${interviewId}`);
+        if (response.ok) {
+            const interview = await response.json();
+            alert(`Chi tiết phỏng vấn:\n\nỨng viên: ${interview.candidateName}\nVị trí: ${interview.jobTitle}\nThời gian: ${formatDateTime(interview.scheduledAt)}\nLoại: ${interview.type}\nĐịa điểm/Link: ${interview.locationOrLink}\nGhi chú: ${interview.interviewerNote || 'Không có'}`);
+        }
+    } catch (error) {
+        console.error('Open interview detail error:', error);
+    }
+}
+
+/**
+ * Hủy bỏ phỏng vấn
+ */
+async function cancelInterview(interviewId) {
+    if (!confirm('Bạn có chắc chắn muốn hủy lịch phỏng vấn này?')) return;
+
+    try {
+        const response = await fetchWithAuth(`/api/interviews/${interviewId}`, { method: 'DELETE' });
+        if (response.ok) {
+            alert('Đã hủy lịch phỏng vấn!');
+            loadInterviews();
+        } else {
+            alert('Không thể hủy lịch phỏng vấn');
+        }
+    } catch (error) {
+        console.error('Cancel interview error:', error);
+    }
+}
+
+/**
+ * Tạo lịch phỏng vấn mới
+ */
+async function scheduleInterview(e) {
+    e.preventDefault();
+
+    const data = {
+        applicationId: document.getElementById('interviewApplicationId').value,
+        scheduledAt: document.getElementById('interviewDateTime').value,
+        type: document.getElementById('interviewType').value,
+        locationOrLink: document.getElementById('interviewLocation').value,
+        interviewerNote: document.getElementById('interviewNote').value
+    };
+
+    try {
+        const response = await fetchWithAuth('/api/interviews', {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            alert('Tạo lịch phỏng vấn thành công!');
+            const modal = bootstrap.Modal.getInstance(document.getElementById('scheduleInterviewModal'));
+            if (modal) modal.hide();
+            loadInterviews();
+        } else {
+            const errData = await response.json();
+            alert('Lỗi: ' + (errData.message || 'Không thể tạo lịch phỏng vấn'));
+        }
+    } catch (error) {
+        console.error('Schedule interview error:', error);
+        alert('Lỗi kết nối khi tạo lịch phỏng vấn');
+    }
+}
+
+/**
+ * Cập nhật kết quả phỏng vấn
+ */
+async function updateInterviewResult(interviewId, result) {
+    const note = prompt('Nhập ghi chú (tùy chọn):');
+
+    try {
+        const response = await fetchWithAuth(`/api/interviews/${interviewId}/result?result=${result}&note=${encodeURIComponent(note || '')}`, {
+            method: 'PATCH'
+        });
+
+        if (response.ok) {
+            alert('Cập nhật kết quả thành công!');
+            loadInterviews();
+        } else {
+            alert('Không thể cập nhật kết quả');
+        }
+    } catch (error) {
+        console.error('Update interview result error:', error);
+    }
+}
+
+// ==================== INITIALIZATION ====================
+document.addEventListener('DOMContentLoaded', function () {
     const jobForm = document.getElementById('jobPostingForm');
     if (jobForm) jobForm.addEventListener('submit', saveJobPosting);
 
@@ -346,14 +499,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const profileForm = document.getElementById('candidateProfileForm');
     if (profileForm) profileForm.addEventListener('submit', saveCandidateProfile);
 
+    const interviewForm = document.getElementById('scheduleInterviewForm');
+    if (interviewForm) interviewForm.addEventListener('submit', scheduleInterview);
+
     const applyBtn = document.getElementById('btn-apply-job');
     if (applyBtn) {
-        applyBtn.addEventListener('click', function() {
+        applyBtn.addEventListener('click', function () {
             const jobId = this.getAttribute('data-job-id');
             applyForJob(jobId);
         });
     }
 
+    // Load data for different pages
     if (document.getElementById('applications-container')) loadMyApplications();
     if (document.getElementById('my-jobs-container')) loadMyJobs();
+    if (document.getElementById('interviews-container')) loadInterviews();
 });

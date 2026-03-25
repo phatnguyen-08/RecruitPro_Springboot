@@ -4,6 +4,8 @@ import duanspringboot.dto.profile.CandidateProfileResponse;
 import duanspringboot.security.CustomUserDetails;
 import duanspringboot.service.ApplicationService;
 import duanspringboot.service.CandidateProfileService;
+import duanspringboot.service.CompanyService;
+import duanspringboot.service.InterviewService;
 import duanspringboot.service.JobPostingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -22,6 +24,8 @@ public class ViewController {
     private final JobPostingService jobPostingService;
     private final CandidateProfileService candidateProfileService;
     private final ApplicationService applicationService;
+    private final CompanyService companyService;
+    private final InterviewService interviewService;
 
     // --- Trang chủ & Auth ---
     @GetMapping("/")
@@ -68,7 +72,8 @@ public class ViewController {
     public String myApplications(
             @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
-        if (userDetails == null) return "redirect:/login";
+        if (userDetails == null)
+            return "redirect:/login";
         Long userId = ((CustomUserDetails) userDetails).getId();
         try {
             model.addAttribute("applications", applicationService.getMyApplications(userId));
@@ -80,7 +85,15 @@ public class ViewController {
 
     // --- Recruiter Views ---
     @GetMapping("/recruiter/company")
-    public String companyInfo() {
+    public String companyInfo(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails != null) {
+            try {
+                Long userId = ((CustomUserDetails) userDetails).getId();
+                model.addAttribute("company", companyService.getMyCompany(userId));
+            } catch (Exception e) {
+                model.addAttribute("company", null);
+            }
+        }
         return "recruiter/company-info";
     }
 
@@ -95,12 +108,20 @@ public class ViewController {
     }
 
     @GetMapping("/recruiter/jobs/edit/{id}")
-    public String editJob(@PathVariable Long id) {
+    public String editJob(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails != null) {
+            try {
+                model.addAttribute("job", jobPostingService.getById(id));
+            } catch (Exception e) {
+                model.addAttribute("job", null);
+            }
+        }
         return "recruiter/jobs/create-edit";
     }
 
     @GetMapping("/recruiter/applications/job/{jobId}")
-    public String viewApplicationsForJob(@PathVariable Long jobId, @AuthenticationPrincipal UserDetails userDetails, Model model) {
+    public String viewApplicationsForJob(@PathVariable Long jobId, @AuthenticationPrincipal UserDetails userDetails,
+            Model model) {
         if (userDetails != null) {
             Long userId = ((CustomUserDetails) userDetails).getId();
             try {
@@ -119,7 +140,15 @@ public class ViewController {
     }
 
     @GetMapping("/recruiter/interviews")
-    public String viewInterviews() {
+    public String viewInterviews(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails != null) {
+            Long userId = ((CustomUserDetails) userDetails).getId();
+            try {
+                model.addAttribute("interviews", interviewService.getMyInterviews(userId));
+            } catch (Exception e) {
+                model.addAttribute("interviews", List.of());
+            }
+        }
         return "recruiter/interviews/schedule";
     }
 }
