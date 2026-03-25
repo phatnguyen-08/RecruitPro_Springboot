@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <title>Đăng ký tài khoản</title>
+    <link th:href="@{/css/auth.css}" rel="stylesheet">
+</head>
+<body>
+<div layout:fragment="content" class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-lg border-0 mt-4 mb-5">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <h2 class="fw-bold">Bắt đầu ngay hôm nay</h2>
+                    <p class="text-muted">Gia nhập cộng đồng J2PP để mở khóa tiềm năng</p>
+                </div>
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Họ và tên</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="username" required placeholder="Nguyễn Văn A">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" required placeholder="name@example.com">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                            <input type="password" class="form-control" id="password" required placeholder="Tối thiểu 6 ký tự">
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="role" class="form-label">Bạn là ai?</label>
+                        <select class="form-select" id="role" required>
+                            <option value="CANDIDATE" selected>Ứng viên (Tìm việc)</option>
+                            <option value="RECRUITER">Nhà tuyển dụng (Đăng tin)</option>
+                        </select>
+                    </div>
+                    <div class="d-grid mb-3">
+                        <button type="submit" class="btn btn-primary btn-lg">Đăng ký</button>
+                    </div>
+                    <div class="text-center mt-4">
+                        <p class="mb-0 text-muted">Đã có tài khoản? <a th:href="@{/login}" class="text-primary fw-bold">Đăng nhập ngay</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script th:src="@{/js/auth.js}"></script>
+</th:block>
+</body>
+</html>

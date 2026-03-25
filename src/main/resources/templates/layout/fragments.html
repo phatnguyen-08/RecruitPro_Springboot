@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- Notification Modal Fragment -->
+<div th:fragment="notificationModal" class="modal fade" id="notificationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="notificationTitle">Thông báo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="notificationMessage">
+                <!-- Message will be injected here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Job Card Fragment -->
+<div th:fragment="jobCard(job)" class="card job-card h-100 border-0 shadow-sm">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+            <h5 class="card-title text-primary mb-0" th:text="${job.title}">Senior Java Developer</h5>
+            <span class="badge bg-light text-dark" th:text="${job.jobType}">Toàn thời gian</span>
+        </div>
+        <h6 class="card-subtitle mb-2 text-muted" th:text="${job.companyName}">Google Vietnam</h6>
+        <div class="mb-3">
+            <small class="text-muted"><i class="fas fa-map-marker-alt me-1"></i> <span th:text="${job.location}">TP. Hồ Chí Minh</span></small>
+            <small class="text-muted ms-3"><i class="fas fa-money-bill-wave me-1"></i> <span th:text="${job.salaryRange}">Thỏa thuận</span></small>
+        </div>
+        <p class="card-text text-truncate-3" th:text="${job.description}">Mô tả ngắn gọn về công việc và yêu cầu...</p>
+    </div>
+    <div class="card-footer bg-white border-0 pb-3">
+        <a th:href="@{'/jobs/' + ${job.id}}" class="btn btn-outline-primary w-100">Chi tiết</a>
+    </div>
+</div>
+
+</body>
+</html>
