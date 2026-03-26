@@ -32,6 +32,7 @@ public class JobPostingService {
     private final CompanyRepository companyRepository;
 
     // 0. Lấy theo ID
+    @Transactional(readOnly = true)
     public JobPostingResponse getById(Long id) {
         JobPosting job = jobPostingRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
@@ -71,6 +72,16 @@ public class JobPostingService {
         }
 
         return mapToResponse(jobPostingRepository.save(savedJob));
+    }
+
+    @Transactional(readOnly = true)
+    public JobPostingResponse getJobById(Long id) {
+    // Tìm job, nếu không có trả về null để giao diện hiện phần "Không tìm thấy công việc"
+    JobPosting job = jobPostingRepository.findById(id).orElse(null);
+    if (job == null) {
+        return null;
+    }
+    return mapToResponse(job);
     }
 
     // 2. Cập nhật tin tuyển dụng
@@ -223,6 +234,7 @@ public class JobPostingService {
                 .status(job.getStatus())
                 .expiredAt(job.getExpiredAt())
                 .createdAt(job.getCreatedAt())
+                .updatedAt(job.getUpdatedAt())
                 .applicationCount(job.getApplications() != null ? job.getApplications().size() : 0)
                 .requiredSkills(skills)
                 .jobFieldName(job.getJobField() != null ? job.getJobField().getName() : null)

@@ -77,6 +77,10 @@ public class JobPosting {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @org.hibernate.annotations.UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+
     // Relationships
     @OneToMany(mappedBy = "jobPosting", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<JobSkill> skills;

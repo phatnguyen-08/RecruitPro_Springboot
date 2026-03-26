@@ -86,17 +86,28 @@ public class ApplicationService {
     }
 
     private ApplicationResponse mapToResponse(Application app) {
+        CandidateProfile p = app.getCandidate();
         return ApplicationResponse.builder()
-                .id(app.getId())
-                .candidateId(app.getCandidate().getId())
-                .candidateName(app.getCandidate().getFullName())
-                .jobId(app.getJobPosting().getId()) 
-                .jobTitle(app.getJobPosting().getTitle())
-                .companyName(app.getJobPosting().getCompany().getName())
-                .coverLetter(app.getCoverLetter())
-                .resumeUrl(app.getCandidate().getResumeUrl())
-                .status(app.getStatus())
-                .appliedAt(app.getAppliedAt())
-                .build();
+                // Đơn ứng tuyển
+            .id(app.getId())
+            .candidateId(p.getId())
+            .jobId(app.getJobPosting().getId())
+            .jobTitle(app.getJobPosting().getTitle())
+            .companyName(app.getJobPosting().getCompany().getName())
+            .coverLetter(app.getCoverLetter())
+            .status(app.getStatus())
+            .appliedAt(app.getAppliedAt())
+            // Hồ sơ cá nhân
+            .candidateName(p.getFullName())
+            .candidateEmail(p.getUser().getEmail())
+            .candidatePhone(p.getPhone())
+            .candidateHeadline(p.getHeadline())
+            .candidateSummary(p.getSummary())
+            .candidateAddress(p.getAddress())
+            .candidateDob(p.getDateOfBirth())
+            .candidateGender(p.getGender())
+            .avatarUrl(p.getAvatarUrl())
+            .resumeUrl(p.getResumeUrl())
+            .build();
     }
 }
