@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title layout:title-pattern="$LAYOUT_TITLE - $CONTENT_TITLE">J2PP - Job Portal</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link th:href="@{/css/main.css}" rel="stylesheet">
+    <link th:href="@{/css/toast.css}" rel="stylesheet">
+    <th:block layout:fragment="styles"></th:block>
+</head>
+
+<body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg sticky-top" id="mainNav">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <i class="fas fa-briefcase me-2"></i>
+                <span>J2PP</span>
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" th:href="@{/}">
+                            <i class="fas fa-search me-2"></i>Tìm việc làm
+                        </a>
+                    </li>
+
+                    <!-- Recruiter menu - Hidden by default, shown by JS -->
+                    <li class="nav-item dropdown hidden" id="nav-recruiter-menu">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-building me-2"></i>Nhà tuyển dụng
+                        </a>
+                        <ul class="dropdown-menu shadow-lg border-0 rounded-3 py-2">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" th:href="@{/recruiter/jobs}">
+                                    <i class="fas fa-list me-3 text-muted"></i>Quản lý tin đăng
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" th:href="@{/recruiter/jobs/create}">
+                                    <i class="fas fa-plus me-3 text-muted"></i>Đăng tin mới
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" th:href="@{/recruiter/company}">
+                                    <i class="fas fa-building me-3 text-muted"></i>Thông tin công ty
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider mx-3 my-2"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2" th:href="@{/recruiter/applications/pipeline}">
+                                    <i class="fas fa-tasks me-3 text-muted"></i>Pipeline ứng viên
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <!-- Candidate menu - Hidden by default, shown by JS -->
+                    <li class="nav-item hidden" id="nav-candidate-menu">
+                        <a class="nav-link d-flex align-items-center" th:href="@{/candidate/applications}">
+                            <i class="fas fa-file-alt me-2"></i>Việc làm đã ứng tuyển
+                        </a>
+                    </li>
+                </ul>
+
+                <div class="d-flex align-items-center gap-3">
+                    <!-- Auth Buttons - Shown/Hidden by JS -->
+                    <a th:href="@{/login}" class="btn btn-outline-primary px-4 hidden" id="nav-login-btn">
+                        <i class="fas fa-sign-in-alt me-2"></i>Đăng nhập
+                    </a>
+                    <a th:href="@{/register}" class="btn btn-primary px-4 hidden" id="nav-register-btn">
+                        <i class="fas fa-user-plus me-2"></i>Đăng ký
+                    </a>
+
+                    <!-- User Info Dropdown - Hidden by default, shown by JS -->
+                    <div class="dropdown hidden" id="nav-user-dropdown">
+                        <button class="btn btn-light dropdown-toggle d-flex align-items-center gap-2 px-3 py-2" type="button" data-bs-toggle="dropdown" style="border-radius: 50px;">
+                            <span class="avatar-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; border-radius: 50%; background: var(--gradient-primary); color: white; font-weight: 600;">
+                                <i class="fas fa-user"></i>
+                            </span>
+                            <span id="nav-username" class="fw-semibold">User</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 py-2 mt-2">
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2 px-3" th:href="@{/candidate/profile}">
+                                    <i class="fas fa-id-card me-3 text-muted"></i>Hồ sơ cá nhân
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider mx-3 my-2"></li>
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center py-2 px-3 text-danger" href="javascript:void(0)" onclick="logout()">
+                                    <i class="fas fa-sign-out-alt me-3"></i>Đăng xuất
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main layout:fragment="content" class="flex-grow-1">
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="footer-brand d-flex align-items-center mb-3">
+                        <i class="fas fa-briefcase me-2"></i>
+                        <span>J2PP</span>
+                    </div>
+                    <p class="text-muted mb-3">Nền tảng tuyển dụng hàng đầu Việt Nam, kết nối ứng viên với cơ hội việc làm phù hợp.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-muted fs-5"><i class="fab fa-facebook"></i></a>
+                        <a href="#" class="text-muted fs-5"><i class="fab fa-linkedin"></i></a>
+                        <a href="#" class="text-muted fs-5"><i class="fab fa-twitter"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">Cho ứng viên</h6>
+                    <ul class="footer-links">
+                        <li><a href="#">Tìm việc làm</a></li>
+                        <li><a href="#">Tạo hồ sơ</a></li>
+                        <li><a href="#">Ứng tuyển</a></li>
+                        <li><a href="#">Hướng dẫn</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">Cho nhà tuyển dụng</h6>
+                    <ul class="footer-links">
+                        <li><a href="#">Đăng tin tuyển dụng</a></li>
+                        <li><a href="#">Tìm ứng viên</a></li>
+                        <li><a href="#">Quản lý tin</a></li>
+                        <li><a href="#">Báo cáo</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">Về J2PP</h6>
+                    <ul class="footer-links">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Chính sách</a></li>
+                        <li><a href="#">Điều khoản</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-6">
+                    <h6 class="text-white fw-bold mb-3">Liên hệ</h6>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="fas fa-envelope me-2"></i>support@j2pp.com</a></li>
+                        <li><a href="#"><i class="fas fa-phone me-2"></i>1900 1234</a></li>
+                        <li><a href="#"><i class="fas fa-map-marker-alt me-2"></i>TP. Hồ Chí Minh</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="footer-divider">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="footer-bottom mb-0">© 2026 J2PP Job Portal. Mọi quyền được bảo lưu.</p>
+                </div>
+                <div class="col-md-6 text-center text-md-end mt-3 mt-md-0">
+                    <p class="footer-bottom mb-0">Powered by Spring Boot & JWT</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+    <script th:src="@{/js/toast.js}"></script>
+
+    <!-- Navbar scroll effect -->
+    <script>
+        window.addEventListener('scroll', function() {
+            const nav = document.getElementById('mainNav');
+            if (window.scrollY > 50) {
+                nav.classList.add('scrolled');
+            } else {
+                nav.classList.remove('scrolled');
+            }
+        });
+    </script>
+
+    <th:block layout:fragment="scripts"></th:block>
+
+</body>
+</html>
