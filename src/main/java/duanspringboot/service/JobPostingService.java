@@ -143,6 +143,14 @@ public class JobPostingService {
                 .collect(Collectors.toList());
     }
 
+    // 5.1. Lấy danh sách tin đang mở của một công ty (Công khai)
+    public List<JobPostingResponse> getPublicJobsByCompanyId(Long companyId) {
+        return jobPostingRepository.findByCompanyIdAndStatus(companyId, JobStatus.OPEN)
+                .stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
     // 6. Đóng/Mở tin tuyển dụng nhanh
     public JobPostingResponse changeStatus(Long id, JobStatus status, Long userId) {
         JobPosting job = jobPostingRepository.findById(id)
@@ -183,7 +191,7 @@ public class JobPostingService {
     public Map<String, Object> searchJobsPaginated(String location, Integer minSalary, String title, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
         Page<JobPosting> jobPage = jobPostingRepository.filterJobsPaginated(
-                JobStatus.OPEN, location, minSalary, title, pageable);
+                JobStatus.OPEN, location, minSalary, title, null, pageable);
         
         List<JobPostingResponse> jobs = jobPage.getContent().stream()
                 .map(this::mapToResponse)
@@ -211,6 +219,7 @@ public class JobPostingService {
 
         return JobPostingResponse.builder()
                 .id(job.getId())
+                .companyId(job.getCompany().getId())
                 .title(job.getTitle())
                 .companyName(job.getCompany().getName())
                 .description(job.getDescription())
@@ -223,6 +232,7 @@ public class JobPostingService {
                 .status(job.getStatus())
                 .expiredAt(job.getExpiredAt())
                 .createdAt(job.getCreatedAt())
+                .updatedAt(job.getUpdatedAt())
                 .applicationCount(job.getApplications() != null ? job.getApplications().size() : 0)
                 .requiredSkills(skills)
                 .jobFieldName(job.getJobField() != null ? job.getJobField().getName() : null)

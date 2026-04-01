@@ -90,6 +90,7 @@ public class ApplicationService {
                 .id(app.getId())
                 .candidateId(app.getCandidate().getId())
                 .candidateName(app.getCandidate().getFullName())
+                .candidateEmail(app.getCandidate().getUser().getEmail())
                 .jobId(app.getJobPosting().getId()) 
                 .jobTitle(app.getJobPosting().getTitle())
                 .companyName(app.getJobPosting().getCompany().getName())

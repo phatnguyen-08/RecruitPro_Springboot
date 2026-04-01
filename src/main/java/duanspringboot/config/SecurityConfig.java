@@ -45,7 +45,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập View HTML
-                        .requestMatchers("/", "/login", "/register", "/jobs/**", "/candidate/**", "/recruiter/**")
+                        .requestMatchers("/", "/login", "/register", "/jobs/**", "/notifications")
                         .permitAll()
 
                         // API public
@@ -53,6 +53,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/jobs/search").permitAll()
                         .requestMatchers("/api/jobs/{id}").permitAll()
                         .requestMatchers("/api/job-fields/**").permitAll()
+                        .requestMatchers("/api/blogs/**").permitAll()
 
                         // Phân quyền API
                         .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
@@ -60,7 +61,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/jobs/**").hasRole("RECRUITER")
                         .requestMatchers("/api/applications/**").authenticated()
                         .requestMatchers("/api/interviews/**").hasRole("RECRUITER")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
+                        .requestMatchers("/candidate/**").hasRole("CANDIDATE")
+                        .requestMatchers("/recruiter/**").hasRole("RECRUITER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

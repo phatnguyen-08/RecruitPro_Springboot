@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/main-layout}">
+<head>
+    <th:block layout:fragment="styles">
+        <link th:href="@{/css/dashboard.css}" rel="stylesheet">
+    </th:block>
+    <title>Quản trị - J2PP</title>
+</head>
+<body>
+<div layout:fragment="content" class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">
+            <i class="fas fa-tachometer-alt text-primary me-2"></i>Dashboard
+        </h2>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-primary rounded-3 p-3 me-3">
+                        <i class="fas fa-users text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalUsers">0</h3>
+                        <small class="text-muted">Người dùng</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-success rounded-3 p-3 me-3">
+                        <i class="fas fa-user-tie text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalCandidates">0</h3>
+                        <small class="text-muted">Ứng viên</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-info rounded-3 p-3 me-3">
+                        <i class="fas fa-building text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalRecruiters">0</h3>
+                        <small class="text-muted">Nhà tuyển dụng</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-warning rounded-3 p-3 me-3">
+                        <i class="fas fa-briefcase text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalJobPostings">0</h3>
+                        <small class="text-muted">Tin tuyển dụng</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-danger rounded-3 p-3 me-3">
+                        <i class="fas fa-paper-plane text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalApplications">0</h3>
+                        <small class="text-muted">Đơn ứng tuyển</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 col-lg-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body d-flex align-items-center">
+                    <div class="bg-purple rounded-3 p-3 me-3">
+                        <i class="fas fa-calendar-check text-white fs-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0 fw-bold" id="totalInterviews">0</h3>
+                        <small class="text-muted">Phỏng vấn</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Management Section -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-users-cog me-2 text-primary"></i>Quản lý người dùng
+                </h5>
+                <div class="d-flex gap-2">
+                    <input type="text" class="form-control" id="searchUsers" placeholder="Tìm kiếm theo email..." style="width: 250px;">
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">ID</th>
+                            <th class="py-3">Email</th>
+                            <th class="py-3">Vai trò</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="py-3">Ngày tạo</th>
+                            <th class="text-center py-3 pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+                                <p class="text-muted mb-0">Đang tải dữ liệu...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+<script>
+let allUsers = [];
+
+// Load dashboard stats
+async function loadDashboardStats() {
+    try {
+        const response = await fetch('/api/admin/dashboard', {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to load stats');
+
+        const stats = await response.json();
+
+        document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+        document.getElementById('totalCandidates').textContent = stats.totalCandidates || 0;
+        document.getElementById('totalRecruiters').textContent = stats.totalRecruiters || 0;
+        document.getElementById('totalJobPostings').textContent = stats.totalJobPostings || 0;
+        document.getElementById('totalApplications').textContent = stats.totalApplications || 0;
+        document.getElementById('totalInterviews').textContent = stats.totalInterviews || 0;
+    } catch (error) {
+        console.error('Error loading dashboard stats:', error);
+    }
+}
+
+// Load users
+async function loadUsers() {
+    try {
+        const response = await fetch('/api/admin/users', {
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to load users');
+
+        allUsers = await response.json();
+        renderUsers(allUsers);
+    } catch (error) {
+        console.error('Error loading users:', error);
+        document.getElementById('usersTableBody').innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle text-warning fa-2x mb-3"></i>
+                    <p class="text-muted">Không thể tải dữ liệu người dùng</p>
+                </td>
+            </tr>
+        `;
+    }
+}
+
+// Render users table
+function renderUsers(users) {
+    const tbody = document.getElementById('usersTableBody');
+
+    if (users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="6" class="text-center py-5">
+                    <i class="fas fa-users-slash text-muted fa-2x mb-3"></i>
+                    <p class="text-muted mb-0">Không có người dùng nào</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    let html = '';
+    users.forEach(user => {
+        const roleBadgeClass = user.role === 'ADMIN' ? 'bg-danger' :
+                              user.role === 'RECRUITER' ? 'bg-info' : 'bg-success';
+        const statusBadgeClass = user.isActive ? 'bg-success' : 'bg-secondary';
+        const statusText = user.isActive ? 'Hoạt động' : 'Khóa';
+        const createdDate = new Date(user.createdAt).toLocaleDateString('vi-VN');
+
+        html += `
+            <tr>
+                <td class="ps-4 fw-bold">#${user.id}</td>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <div class="avatar-circle me-3" style="width: 35px; height: 35px; font-size: 0.9rem;">
+                            ${user.email.charAt(0).toUpperCase()}
+                        </div>
+                        <span class="fw-medium">${user.email}</span>
+                    </div>
+                </td>
+                <td><span class="badge ${roleBadgeClass}">${user.role}</span></td>
+                <td><span class="badge ${statusBadgeClass}">${statusText}</span></td>
+                <td>${createdDate}</td>
+                <td class="text-center">
+                    ${user.role !== 'ADMIN' ? `
+                        <button class="btn btn-sm btn-outline-primary me-2" onclick="toggleUserStatus(${user.id})" title="${user.isActive ? 'Khóa tài khoản' : 'Mở khóa'}">
+                            <i class="fas ${user.isActive ? 'fa-lock' : 'fa-unlock'}"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser(${user.id})" title="Xóa tài khoản">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    ` : '<span class="text-muted small">-</span>'}
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+// Toggle user status
+async function toggleUserStatus(userId) {
+    if (!confirm('Bạn có chắc muốn thay đổi trạng thái tài khoản này?')) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}/toggle-status`, {
+            method: 'PATCH',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to toggle status');
+
+        showToast('Đã cập nhật trạng thái tài khoản', 'success');
+        loadUsers();
+        loadDashboardStats();
+    } catch (error) {
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+// Delete user
+async function deleteUser(userId) {
+    if (!confirm('Bạn có chắc muốn xóa tài khoản này? Hành động này không thể hoàn tác.')) return;
+
+    try {
+        const response = await fetch(`/api/admin/users/${userId}`, {
+            method: 'DELETE',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) throw new Error('Failed to delete user');
+
+        showToast('Đã xóa tài khoản', 'success');
+        loadUsers();
+        loadDashboardStats();
+    } catch (error) {
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+// Search users
+document.getElementById('searchUsers').addEventListener('input', function(e) {
+    const keyword = e.target.value.toLowerCase();
+    if (keyword.length === 0) {
+        renderUsers(allUsers);
+    } else {
+        const filtered = allUsers.filter(u => u.email.toLowerCase().includes(keyword));
+        renderUsers(filtered);
+    }
+});
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardStats();
+    loadUsers();
+});
+</script>
+</th:block>
+</body>
+</html>

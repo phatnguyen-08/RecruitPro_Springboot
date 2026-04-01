@@ -13,6 +13,7 @@ import duanspringboot.enums.JobStatus;
 
 public interface JobPostingRepository extends JpaRepository<JobPosting, Long> {
     List<JobPosting> findByCompanyId(Long companyId);
+    List<JobPosting> findByCompanyIdAndStatus(Long companyId, JobStatus status);
     List<JobPosting> findByStatus(JobStatus status);
 
     @Query("SELECT j FROM JobPosting j WHERE j.status = :status " +

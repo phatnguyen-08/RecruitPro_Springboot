@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class JobPostingResponse {
     private Long id;
+    private Long companyId;
     private String title;
     private String companyName;
     private String description;
@@ -27,6 +28,7 @@ public class JobPostingResponse {
     private JobStatus status;
     private LocalDateTime expiredAt;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     private Integer applicationCount;
     private List<String> requiredSkills;
     private String jobFieldName;

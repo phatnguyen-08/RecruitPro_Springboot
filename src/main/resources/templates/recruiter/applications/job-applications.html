@@ -19,7 +19,7 @@
                         <tr>
                             <th class="ps-4">Họ và tên</th>
                             <th>Ngày nộp</th>
-                            <th>Kinh nghiệm</th>
+                            <th>Tin nhắn/Thư</th>
                             <th>Trạng thái</th>
                             <th class="text-center pe-4">Thao tác</th>
                         </tr>
@@ -36,8 +36,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td th:text="${#temporals.format(app.appliedDate, 'dd/MM/yyyy')}">22/03/2026</td>
-                                <td th:text="${app.yearsOfExperience != null ? app.yearsOfExperience + ' năm' : 'Chưa rõ'}">3 năm</td>
+                                <td th:text="${app.appliedAt != null ? #temporals.format(app.appliedAt, 'dd/MM/yyyy') : ''}">22/03/2026</td>
+                                <td class="text-truncate" style="max-width: 150px;" th:title="${app.coverLetter}" th:text="${app.coverLetter != null and !app.coverLetter.empty ? app.coverLetter : 'Không có'}">...</td>
                                 <td>
                                     <select class="form-select form-select-sm border-0 bg-light" 
                                             th:onchange="'updateApplicationStatus(' + ${app.id} + ', this.value)'">
@@ -50,7 +50,7 @@
                                 </td>
                                 <td class="text-center pe-4">
                                     <div class="btn-group">
-                                        <a th:href="${app.cvUrl}" class="btn btn-sm btn-outline-primary" target="_blank" title="Xem CV"><i class="fas fa-file-pdf"></i></a>
+                                        <a th:href="${app.resumeUrl != null ? app.resumeUrl : '#'}" th:classappend="${app.resumeUrl == null ? 'disabled' : ''}" class="btn btn-sm btn-outline-primary" target="_blank" title="Xem CV"><i class="fas fa-file-pdf"></i></a>
                                         <button class="btn btn-sm btn-outline-info" title="Lên lịch phỏng vấn"><i class="fas fa-calendar-plus"></i></button>
                                         <button class="btn btn-sm btn-outline-secondary" title="Chi tiết"><i class="fas fa-info-circle"></i></button>
                                     </div>

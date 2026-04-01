@@ -7,6 +7,7 @@ import duanspringboot.service.CandidateProfileService;
 import duanspringboot.service.CompanyService;
 import duanspringboot.service.InterviewService;
 import duanspringboot.service.JobPostingService;
+import duanspringboot.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,6 +28,7 @@ public class ViewController {
     private final ApplicationService applicationService;
     private final CompanyService companyService;
     private final InterviewService interviewService;
+    private final NotificationService notificationService;
 
     // --- Trang chủ & Auth ---
     @GetMapping("/")
@@ -52,6 +55,19 @@ public class ViewController {
             model.addAttribute("job", null);
         }
         return "common/job-detail";
+    }
+
+    // --- Company Details ---
+    @GetMapping("/companies/{id}")
+    public String companyDetail(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("company", companyService.getById(id));
+            model.addAttribute("jobs", jobPostingService.getPublicJobsByCompanyId(id));
+        } catch (Exception e) {
+            model.addAttribute("company", null);
+            model.addAttribute("jobs", null);
+        }
+        return "common/company-detail";
     }
 
     // --- Candidate Views ---
@@ -150,5 +166,31 @@ public class ViewController {
             }
         }
         return "recruiter/interviews/schedule";
+    }
+
+    // --- Notification Views ---
+    @GetMapping("/notifications")
+    public String viewNotifications(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        return "common/notifications";
+    }
+
+    // --- Admin Views ---
+    @GetMapping("/admin/dashboard")
+    public String adminDashboard(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        return "admin/dashboard";
+    }
+
+    @GetMapping("/admin/blogs")
+    public String adminBlogs(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        return "admin/blogs";
     }
 }

@@ -51,4 +51,25 @@ public class InterviewController {
         Long recruiterId = ((CustomUserDetails) userDetails).getId();
         return ResponseEntity.ok(interviewService.updateResult(id, result, note, recruiterId));
     }
+
+    // 4. Lấy chi tiết một cuộc phỏng vấn (Recruiter)
+    @GetMapping("/{id}")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<InterviewResponse> getInterviewById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long recruiterId = ((CustomUserDetails) userDetails).getId();
+        return ResponseEntity.ok(interviewService.getInterviewById(id, recruiterId));
+    }
+
+    // 5. Xóa/Hủy một cuộc phỏng vấn (Recruiter)
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<Void> deleteInterview(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long recruiterId = ((CustomUserDetails) userDetails).getId();
+        interviewService.deleteInterview(id, recruiterId);
+        return ResponseEntity.noContent().build();
+    }
 }

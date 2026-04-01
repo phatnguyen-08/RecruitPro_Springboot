@@ -28,9 +28,10 @@ function updateNavbar() {
     const registerBtn = document.getElementById('nav-register-btn');
     const userDropdown = document.getElementById('nav-user-dropdown');
     const userNameDisplay = document.getElementById('nav-username');
-    
+
     const recruiterMenu = document.getElementById('nav-recruiter-menu');
     const candidateMenu = document.getElementById('nav-candidate-menu');
+    const adminMenu = document.getElementById('nav-admin-menu');
 
     const user = getUserInfo();
     const token = localStorage.getItem('jwt_token');
@@ -39,7 +40,7 @@ function updateNavbar() {
         // Đã đăng nhập: Ẩn nút đăng nhập/đăng ký
         if (loginBtn) loginBtn.classList.add('hidden');
         if (registerBtn) registerBtn.classList.add('hidden');
-        
+
         // Hiện dropdown người dùng và tên
         if (userDropdown) userDropdown.classList.remove('hidden');
         if (userNameDisplay) {
@@ -48,23 +49,66 @@ function updateNavbar() {
 
         // Kiểm tra Role để hiển thị Menu tương ứng (xử lý cả ROLE_ prefix)
         const role = user.role ? user.role.replace('ROLE_', '') : '';
-        
+
         if (role === 'RECRUITER' || role === 'COMPANY') {
             if (recruiterMenu) recruiterMenu.classList.remove('hidden');
             if (candidateMenu) candidateMenu.classList.add('hidden');
+            if (adminMenu) adminMenu.classList.add('hidden');
         } else if (role === 'CANDIDATE') {
             if (candidateMenu) candidateMenu.classList.remove('hidden');
             if (recruiterMenu) recruiterMenu.classList.add('hidden');
+            if (adminMenu) adminMenu.classList.add('hidden');
+        } else if (role === 'ADMIN') {
+            if (adminMenu) adminMenu.classList.remove('hidden');
+            if (recruiterMenu) recruiterMenu.classList.remove('hidden');
+            if (candidateMenu) candidateMenu.classList.add('hidden');
         }
+
+        // Fetch unread notification count
+        fetchUnreadNotificationCount();
     } else {
         // Chưa đăng nhập: Hiện nút đăng nhập/đăng ký
         if (loginBtn) loginBtn.classList.remove('hidden');
         if (registerBtn) registerBtn.classList.remove('hidden');
-        
+
         // Ẩn các menu chức năng
         if (userDropdown) userDropdown.classList.add('hidden');
         if (recruiterMenu) recruiterMenu.classList.add('hidden');
         if (candidateMenu) candidateMenu.classList.add('hidden');
+        if (adminMenu) adminMenu.classList.add('hidden');
+    }
+}
+
+/**
+ * Fetch số thông báo chưa đọc và hiển thị badge
+ */
+async function fetchUnreadNotificationCount() {
+    const badge = document.getElementById('notificationBadge');
+    if (!badge) return;
+
+    const token = localStorage.getItem('jwt_token');
+    if (!token) return;
+
+    try {
+        const response = await fetch('/api/notifications/unread-count', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const count = data.count || 0;
+
+        if (count > 0) {
+            badge.textContent = count > 99 ? '99+' : count;
+            badge.style.display = 'block';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch (error) {
+        console.error('Error fetching notification count:', error);
     }
 }
 
@@ -98,6 +142,14 @@ async function fetchWithAuth(url, options = {}) {
         logout(); // Token hết hạn hoặc không hợp lệ
     }
     return response;
+}
+
+/**
+ * Lấy header xác thực (chỉ có Authorization)
+ */
+function getAuthHeaders() {
+    const token = localStorage.getItem('jwt_token');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
 // Chạy cập nhật Navbar ngay khi trang web tải xong

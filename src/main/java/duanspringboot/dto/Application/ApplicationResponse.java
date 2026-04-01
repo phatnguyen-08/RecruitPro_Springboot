@@ -11,6 +11,7 @@ public class ApplicationResponse {
     private Long id;
     private Long candidateId;
     private String candidateName;
+    private String candidateEmail;
     private Long jobId;
     private String jobTitle;
     private String companyName;
