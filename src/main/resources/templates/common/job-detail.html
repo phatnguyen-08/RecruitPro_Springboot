@@ -130,10 +130,13 @@
                     </div>
 
                     <div class="d-grid gap-2" id="apply-section">
-                        <button class="btn btn-primary btn-lg" id="btn-apply-job"
+                        <button class="btn btn-primary btn-lg btn-apply-job" id="btn-apply-job"
                                 th:attr="data-job-id=${job.id}">
                             <i class="fas fa-paper-plane me-2"></i>Ứng tuyển ngay
                         </button>
+                        <a th:href="@{/messages/{id}(id=${job.recruiterUserId})}" class="btn btn-outline-primary btn-lg" id="btn-message-recruiter">
+                            <i class="fas fa-comments me-2"></i>Nhắn tin nhà tuyển dụng
+                        </a>
                     </div>
 
                     <div class="text-center mt-3">

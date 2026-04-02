@@ -25,7 +25,7 @@
                             <div class="row g-4 mb-4">
                                 <div class="col-md-4 text-center">
                                     <div class="mb-3">
-                                        <img th:src="${company != null and company.logo != null ? company.logo : 'https://via.placeholder.com/150?text=Logo'}"
+                                        <img th:src="${company != null and company.logoUrl != null ? company.logoUrl : 'https://via.placeholder.com/150?text=Logo'}"
                                             class="img-thumbnail rounded-3 mb-3" id="company-logo-preview"
                                             style="width: 150px; height: 150px; object-fit: contain; background: #f8f9fa;">
                                     </div>
@@ -36,7 +36,7 @@
                                         </button>
                                         <input type="file" id="logo-upload" class="hidden" accept="image/*">
                                         <input type="hidden" id="logoUrl"
-                                            th:value="${company != null ? company.logo : ''}">
+                                            th:value="${company != null ? company.logoUrl : ''}">
                                     </div>
                                 </div>
                                 <div class="col-md-8">

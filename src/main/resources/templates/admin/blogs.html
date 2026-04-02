@@ -98,7 +98,11 @@ let allBlogs = [];
 let blogModal;
 
 document.addEventListener('DOMContentLoaded', function() {
-    blogModal = new bootstrap.Modal(document.getElementById('blogModal'));
+    try {
+        blogModal = new bootstrap.Modal(document.getElementById('blogModal'));
+    } catch (e) {
+        console.error('Error initializing modal:', e);
+    }
     loadBlogs();
 });
 
