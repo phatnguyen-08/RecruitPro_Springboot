@@ -85,3 +85,89 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// ==================== LOGIN GUIDE POPUP ====================
+
+function showLoginGuide() {
+    const popup = document.getElementById('loginGuidePopup');
+    if (popup) {
+        popup.classList.remove('hidden');
+    }
+}
+
+function closeLoginGuide() {
+    const popup = document.getElementById('loginGuidePopup');
+    if (popup) {
+        popup.classList.add('hidden');
+    }
+}
+
+// ==================== GOOGLE GUIDE POPUP ====================
+
+function showGoogleGuide() {
+    const popup = document.getElementById('googleGuidePopup');
+    if (popup) {
+        // Set current redirect URI
+        const redirectUriEl = document.getElementById('googleRedirectUri');
+        if (redirectUriEl) {
+            redirectUriEl.textContent = window.location.origin + '/login/oauth2/code/google';
+        }
+        popup.classList.remove('hidden');
+    }
+}
+
+function closeGoogleGuide() {
+    const popup = document.getElementById('googleGuidePopup');
+    if (popup) {
+        popup.classList.add('hidden');
+    }
+}
+
+// ==================== POPUP EVENT LISTENERS ====================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Login guide popup overlay click
+    const loginPopup = document.getElementById('loginGuidePopup');
+    if (loginPopup) {
+        const loginOverlay = loginPopup.querySelector('.login-guide-overlay');
+        if (loginOverlay) {
+            loginOverlay.addEventListener('click', closeLoginGuide);
+        }
+    }
+
+    // Google guide popup overlay click
+    const googlePopup = document.getElementById('googleGuidePopup');
+    if (googlePopup) {
+        const googleOverlay = googlePopup.querySelector('.login-guide-overlay');
+        if (googleOverlay) {
+            googleOverlay.addEventListener('click', closeGoogleGuide);
+        }
+    }
+
+    // Show guide when clicking login button with empty fields
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        const loginBtn = document.getElementById('loginBtn');
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function(e) {
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                // If fields are empty, show guide popup
+                if (!email || !password) {
+                    e.preventDefault();
+                    showLoginGuide();
+                }
+            });
+        }
+    }
+
+    // Show Google guide when clicking Google login button
+    const googleBtn = document.querySelector('.btn-google');
+    if (googleBtn) {
+        googleBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            showGoogleGuide();
+        });
+    }
+});
