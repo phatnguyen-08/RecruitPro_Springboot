@@ -65,13 +65,15 @@ public class BlogService {
     }
 
     private BlogResponse mapToResponse(Blog blog) {
+        String email = blog.getAuthor().getEmail();
+        String authorName = email.substring(0, email.indexOf('@'));
         return BlogResponse.builder()
                 .id(blog.getId())
                 .title(blog.getTitle())
                 .summary(blog.getSummary())
                 .content(blog.getContent())
                 .imageUrl(blog.getImageUrl())
-                .authorName(blog.getAuthor().getEmail())
+                .authorName(authorName)
                 .createdAt(blog.getCreatedAt())
                 .updatedAt(blog.getUpdatedAt())
                 .build();

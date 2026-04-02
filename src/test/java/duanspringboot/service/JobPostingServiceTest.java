@@ -4,6 +4,7 @@ import duanspringboot.dto.job.JobPostingResponse;
 import duanspringboot.entity.Application;
 import duanspringboot.entity.Company;
 import duanspringboot.entity.JobPosting;
+import duanspringboot.entity.User;
 import duanspringboot.enums.JobStatus;
 import duanspringboot.repository.CompanyRepository;
 import duanspringboot.repository.JobPostingRepository;
@@ -38,9 +39,14 @@ public class JobPostingServiceTest {
 
     @BeforeEach
     void setUp() {
+        User mockUser = new User();
+        mockUser.setId(10L);
+        mockUser.setEmail("recruiter@test.com");
+
         mockCompany = new Company();
         mockCompany.setId(1L);
         mockCompany.setName("Tech Corp");
+        mockCompany.setUser(mockUser);
 
         mockJob = new JobPosting();
         mockJob.setId(100L);

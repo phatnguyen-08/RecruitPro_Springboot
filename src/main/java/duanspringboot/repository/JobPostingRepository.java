@@ -44,4 +44,13 @@ public interface JobPostingRepository extends JpaRepository<JobPosting, Long> {
 
     // Pagination for company jobs
     Page<JobPosting> findByCompanyId(Long companyId, Pageable pageable);
+
+    // Pagination for public job listing (homepage)
+    Page<JobPosting> findByStatus(JobStatus status, Pageable pageable);
+
+    // Count open jobs
+    long countByStatus(JobStatus status);
+
+    @Query("SELECT j FROM JobPosting j WHERE j.company.user.id = :userId ORDER BY j.createdAt DESC")
+    List<JobPosting> findByRecruiterUserId(@Param("userId") Long userId);
 }

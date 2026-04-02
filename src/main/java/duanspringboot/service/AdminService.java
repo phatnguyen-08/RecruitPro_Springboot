@@ -1,8 +1,13 @@
 package duanspringboot.service;
 
 import duanspringboot.dto.admin.AdminDashboardResponse;
+import duanspringboot.dto.admin.CompanyResponse;
+import duanspringboot.dto.admin.JobPostingResponse;
 import duanspringboot.dto.admin.UserResponse;
+import duanspringboot.entity.Company;
+import duanspringboot.entity.JobPosting;
 import duanspringboot.entity.User;
+import duanspringboot.enums.JobStatus;
 import duanspringboot.enums.Role;
 import duanspringboot.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +26,7 @@ public class AdminService {
     private final JobPostingRepository jobPostingRepository;
     private final ApplicationRepository applicationRepository;
     private final InterviewRepository interviewRepository;
+    private final BlogRepository blogRepository;
 
     public AdminDashboardResponse getDashboardStats() {
         List<User> allUsers = userRepository.findAll();
@@ -41,6 +47,7 @@ public class AdminService {
                 .totalJobPostings(jobPostingRepository.count())
                 .totalApplications(applicationRepository.count())
                 .totalInterviews(interviewRepository.count())
+                .totalBlogs(blogRepository.count())
                 .build();
     }
 
@@ -61,8 +68,10 @@ public class AdminService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
-        user.setIsActive(!user.getIsActive());
-        return mapToUserResponse(userRepository.save(user));
+        Boolean currentStatus = user.getIsActive();
+        user.setIsActive(currentStatus == null ? true : !currentStatus);
+        User savedUser = userRepository.saveAndFlush(user);
+        return mapToUserResponse(savedUser);
     }
 
     @Transactional
@@ -71,7 +80,10 @@ public class AdminService {
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
 
         if (user.getRole() == Role.ADMIN) {
-            throw new RuntimeException("Không thể thay đổi vai trò của Admin");
+            long adminCount = userRepository.countByRole(Role.ADMIN);
+            if (adminCount <= 1) {
+                throw new RuntimeException("Không thể thay đổi vai trò của Admin cuối cùng");
+            }
         }
 
         try {
@@ -81,7 +93,8 @@ public class AdminService {
             throw new RuntimeException("Vai trò không hợp lệ: " + role);
         }
 
-        return mapToUserResponse(userRepository.save(user));
+        User savedUser = userRepository.saveAndFlush(user);
+        return mapToUserResponse(savedUser);
     }
 
     @Transactional
@@ -112,6 +125,105 @@ public class AdminService {
                 .isActive(user.getIsActive())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .build();
+    }
+
+    // === Job Posting Management ===
+    public List<JobPostingResponse> getAllJobPostings() {
+        return jobPostingRepository.findAll().stream()
+                .map(this::mapToJobPostingResponse)
+                .collect(Collectors.toList());
+    }
+
+    public JobPostingResponse getJobPostingById(Long id) {
+        JobPosting job = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
+        return mapToJobPostingResponse(job);
+    }
+
+    @Transactional
+    public JobPostingResponse updateJobStatus(Long id, String status) {
+        JobPosting job = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
+
+        try {
+            JobStatus newStatus = JobStatus.valueOf(status.toUpperCase());
+            job.setStatus(newStatus);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Trạng thái không hợp lệ: " + status);
+        }
+
+        JobPosting savedJob = jobPostingRepository.saveAndFlush(job);
+        return mapToJobPostingResponse(savedJob);
+    }
+
+    @Transactional
+    public void deleteJobPosting(Long id) {
+        JobPosting job = jobPostingRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy tin tuyển dụng"));
+        jobPostingRepository.delete(job);
+    }
+
+    private JobPostingResponse mapToJobPostingResponse(JobPosting job) {
+        return JobPostingResponse.builder()
+                .id(job.getId())
+                .companyId(job.getCompany().getId())
+                .companyName(job.getCompany().getName())
+                .title(job.getTitle())
+                .description(job.getDescription())
+                .requirements(job.getRequirements())
+                .salaryMin(job.getSalaryMin())
+                .salaryMax(job.getSalaryMax())
+                .location(job.getLocation())
+                .jobType(job.getJobType())
+                .status(job.getStatus())
+                .jobFieldName(job.getJobField() != null ? job.getJobField().getName() : null)
+                .createdAt(job.getCreatedAt())
+                .updatedAt(job.getUpdatedAt())
+                .build();
+    }
+
+    // === Company Management ===
+    public List<CompanyResponse> getAllCompanies() {
+        return companyRepository.findAll().stream()
+                .map(this::mapToCompanyResponse)
+                .collect(Collectors.toList());
+    }
+
+    public CompanyResponse getCompanyById(Long id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy công ty"));
+        return mapToCompanyResponse(company);
+    }
+
+    public List<CompanyResponse> searchCompanies(String keyword) {
+        String searchTerm = keyword.toLowerCase();
+        return companyRepository.findAll().stream()
+                .filter(c -> c.getName().toLowerCase().contains(searchTerm) ||
+                        c.getUser().getEmail().toLowerCase().contains(searchTerm))
+                .map(this::mapToCompanyResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void deleteCompany(Long id) {
+        Company company = companyRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy công ty"));
+        companyRepository.delete(company);
+    }
+
+    private CompanyResponse mapToCompanyResponse(Company company) {
+        return CompanyResponse.builder()
+                .id(company.getId())
+                .userId(company.getUser().getId())
+                .userEmail(company.getUser().getEmail())
+                .name(company.getName())
+                .logoUrl(company.getLogoUrl())
+                .website(company.getWebsite())
+                .industry(company.getIndustry())
+                .companySize(company.getCompanySize())
+                .description(company.getDescription())
+                .createdAt(company.getUser().getCreatedAt())
                 .build();
     }
 }

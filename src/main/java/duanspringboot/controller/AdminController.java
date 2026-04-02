@@ -1,6 +1,8 @@
 package duanspringboot.controller;
 
 import duanspringboot.dto.admin.AdminDashboardResponse;
+import duanspringboot.dto.admin.CompanyResponse;
+import duanspringboot.dto.admin.JobPostingResponse;
 import duanspringboot.dto.admin.UserResponse;
 import duanspringboot.dto.blog.BlogRequest;
 import duanspringboot.dto.blog.BlogResponse;
@@ -59,6 +61,50 @@ public class AdminController {
     @DeleteMapping("/users/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         adminService.deleteUser(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // === Job Posting Management ===
+    @GetMapping("/jobs")
+    public ResponseEntity<List<JobPostingResponse>> getAllJobPostings() {
+        return ResponseEntity.ok(adminService.getAllJobPostings());
+    }
+
+    @GetMapping("/jobs/{id}")
+    public ResponseEntity<JobPostingResponse> getJobPostingById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getJobPostingById(id));
+    }
+
+    @PatchMapping("/jobs/{id}/status")
+    public ResponseEntity<JobPostingResponse> updateJobStatus(@PathVariable Long id, @RequestParam String status) {
+        return ResponseEntity.ok(adminService.updateJobStatus(id, status));
+    }
+
+    @DeleteMapping("/jobs/{id}")
+    public ResponseEntity<Void> deleteJobPosting(@PathVariable Long id) {
+        adminService.deleteJobPosting(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // === Company Management ===
+    @GetMapping("/companies")
+    public ResponseEntity<List<CompanyResponse>> getAllCompanies() {
+        return ResponseEntity.ok(adminService.getAllCompanies());
+    }
+
+    @GetMapping("/companies/{id}")
+    public ResponseEntity<CompanyResponse> getCompanyById(@PathVariable Long id) {
+        return ResponseEntity.ok(adminService.getCompanyById(id));
+    }
+
+    @GetMapping("/companies/search")
+    public ResponseEntity<List<CompanyResponse>> searchCompanies(@RequestParam String keyword) {
+        return ResponseEntity.ok(adminService.searchCompanies(keyword));
+    }
+
+    @DeleteMapping("/companies/{id}")
+    public ResponseEntity<Void> deleteCompany(@PathVariable Long id) {
+        adminService.deleteCompany(id);
         return ResponseEntity.noContent().build();
     }
 

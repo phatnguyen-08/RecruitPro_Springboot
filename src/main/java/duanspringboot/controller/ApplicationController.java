@@ -6,9 +6,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import duanspringboot.dto.Application.ApplicationDetailResponse;
 import duanspringboot.dto.Application.ApplicationRequest;
 import duanspringboot.dto.Application.ApplicationResponse;
 import duanspringboot.dto.Application.ApplicationStatusRequest;
+import duanspringboot.dto.Application.PipelineData;
 import duanspringboot.security.CustomUserDetails;
 import duanspringboot.service.ApplicationService;
 import jakarta.validation.Valid;
@@ -59,5 +61,27 @@ public class ApplicationController {
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = ((CustomUserDetails) userDetails).getId();
         return ResponseEntity.ok(applicationService.changeStatus(id, request, userId));
+    }
+
+    // 5. Pipeline: Lấy dữ liệu pipeline với filter (API for AJAX)
+    @GetMapping("/pipeline")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<PipelineData> getPipelineData(
+            @RequestParam(required = false) Long jobId,
+            @RequestParam(required = false) String search,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = ((CustomUserDetails) userDetails).getId();
+        PipelineData data = applicationService.getPipelineData(userId, jobId, search);
+        return ResponseEntity.ok(data);
+    }
+
+    // 6. Pipeline: Lấy chi tiết ứng viên (Quick View Panel)
+    @GetMapping("/{id}/detail")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<ApplicationDetailResponse> getApplicationDetail(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long userId = ((CustomUserDetails) userDetails).getId();
+        return ResponseEntity.ok(applicationService.getApplicationDetail(id, userId));
     }
 }

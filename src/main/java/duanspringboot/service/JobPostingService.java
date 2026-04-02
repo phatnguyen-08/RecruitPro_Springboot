@@ -30,6 +30,7 @@ public class JobPostingService {
 
     private final JobPostingRepository jobPostingRepository;
     private final CompanyRepository companyRepository;
+    private final JobAlertService jobAlertService;
 
     // 0. Lấy theo ID
     public JobPostingResponse getById(Long id) {
@@ -58,6 +59,9 @@ public class JobPostingService {
                 .build();
 
         JobPosting savedJob = jobPostingRepository.save(job);
+
+        // Gửi thông báo cho các job alerts phù hợp
+        jobAlertService.checkAndNotifyNewJob(savedJob);
 
         // Xử lý skills
         if (request.getSkills() != null && !request.getSkills().isEmpty()) {
@@ -208,6 +212,26 @@ public class JobPostingService {
         return result;
     }
 
+    // 9. Lấy tất cả tin đang mở với phân trang (cho trang chủ)
+    public Map<String, Object> getAllOpenJobsPaginated(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+        Page<JobPosting> jobPage = jobPostingRepository.findByStatus(JobStatus.OPEN, pageable);
+        
+        List<JobPostingResponse> jobs = jobPage.getContent().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("jobs", jobs);
+        result.put("currentPage", jobPage.getNumber() + 1);
+        result.put("totalPages", jobPage.getTotalPages());
+        result.put("totalItems", jobPage.getTotalElements());
+        result.put("hasNext", jobPage.hasNext());
+        result.put("hasPrevious", jobPage.hasPrevious());
+        
+        return result;
+    }
+
     private JobPostingResponse mapToResponse(JobPosting job) {
         List<String> skills = (job.getSkills() != null) 
             ? job.getSkills().stream().map(JobSkill::getSkillName).collect(Collectors.toList())
@@ -220,6 +244,8 @@ public class JobPostingService {
         return JobPostingResponse.builder()
                 .id(job.getId())
                 .companyId(job.getCompany().getId())
+                .recruiterUserId(job.getCompany().getUser().getId())
+                .recruiterEmail(job.getCompany().getUser().getEmail())
                 .title(job.getTitle())
                 .companyName(job.getCompany().getName())
                 .description(job.getDescription())
@@ -237,5 +263,11 @@ public class JobPostingService {
                 .requiredSkills(skills)
                 .jobFieldName(job.getJobField() != null ? job.getJobField().getName() : null)
                 .build();
+    }
+
+    public List<JobPostingResponse> getJobsByRecruiterUserId(Long userId) {
+        return jobPostingRepository.findByRecruiterUserId(userId).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 }

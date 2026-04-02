@@ -1,6 +1,67 @@
 // application.js - Job, Posting and Company logic
 
 /**
+ * Lưu/Bỏ lưu tin tuyển dụng
+ */
+async function toggleSaveJob(jobId, btnElement) {
+    if (!isLoggedIn()) {
+        window.location.href = '/login';
+        return;
+    }
+
+    const icon = btnElement.querySelector('i');
+    const isSaved = icon.classList.contains('fas');
+
+    try {
+        if (isSaved) {
+            // Unsave
+            const response = await fetchWithAuth(`/api/saved-jobs/${jobId}`, { method: 'DELETE' });
+            if (response.ok) {
+                icon.classList.remove('fas');
+                icon.classList.add('far');
+                btnElement.classList.remove('btn-warning');
+                btnElement.classList.add('btn-outline-warning');
+                showToast('Đã bỏ lưu tin tuyển dụng', 'success');
+            }
+        } else {
+            // Save
+            const response = await fetchWithAuth(`/api/saved-jobs/${jobId}`, { method: 'POST' });
+            if (response.ok) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                btnElement.classList.remove('btn-outline-warning');
+                btnElement.classList.add('btn-warning');
+                showToast('Đã lưu tin tuyển dụng!', 'success');
+            }
+        }
+    } catch (error) {
+        console.error('Save job error:', error);
+        showToast('Có lỗi xảy ra', 'error');
+    }
+}
+
+/**
+ * Kiểm tra trạng thái lưu của job và cập nhật UI
+ */
+async function checkAndUpdateSaveStatus(jobId, btnElement) {
+    try {
+        const response = await fetchWithAuth(`/api/saved-jobs/check/${jobId}`);
+        if (response.ok) {
+            const isSaved = await response.json();
+            const icon = btnElement.querySelector('i');
+            if (isSaved) {
+                icon.classList.remove('far');
+                icon.classList.add('fas');
+                btnElement.classList.remove('btn-outline-warning');
+                btnElement.classList.add('btn-warning');
+            }
+        }
+    } catch (error) {
+        // Ignore errors for status check
+    }
+}
+
+/**
  * Ứng tuyển (Ứng viên)
  */
 async function applyForJob(jobId) {
@@ -40,6 +101,24 @@ async function loadMyJobs() {
     try {
         const response = await fetchWithAuth('/api/jobs/my-jobs');
         const jobs = await response.json();
+
+        // Cập nhật stats
+        const totalJobs = jobs.length;
+        const activeJobs = jobs.filter(j => j.status === 'OPEN').length;
+
+        // Đếm tổng applications từ tất cả jobs
+        let totalApplications = 0;
+        jobs.forEach(job => {
+            totalApplications += job.applicationCount || 0;
+        });
+
+        // Cập nhật UI
+        const totalJobsEl = document.getElementById('totalJobs');
+        const totalApplicationsEl = document.getElementById('totalApplications');
+        const activeJobsEl = document.getElementById('activeJobs');
+        if (totalJobsEl) totalJobsEl.textContent = totalJobs;
+        if (totalApplicationsEl) totalApplicationsEl.textContent = totalApplications;
+        if (activeJobsEl) activeJobsEl.textContent = activeJobs;
 
         if (jobs.length === 0) {
             container.innerHTML = `<tr><td colspan="5" class="text-center py-5"><p class="text-muted mb-0">Bạn chưa đăng tin nào.</p></td></tr>`;
@@ -490,12 +569,15 @@ async function loadAllJobs(title = '', location = '', fieldId = '') {
                         
                         <p class="card-text text-muted text-truncate-2 small">${job.description || 'Mô tả công việc'}</p>
                     </div>
-                    <div class="card-footer bg-white border-0 pt-0">
+                    <div class="card-footer bg-transparent border-0 pt-0">
                         <div class="d-flex gap-2">
+                            <button onclick="toggleSaveJob(${job.id}, this)" class="btn btn-outline-warning btn-save btn-save-job" title="Lưu tin">
+                                <i class="far fa-bookmark"></i>
+                            </button>
                             <a href="/jobs/${job.id}" class="btn btn-outline-primary flex-grow-1">
                                 <i class="fas fa-eye me-2"></i>Chi tiết
                             </a>
-                            <button onclick="applyForJob(${job.id})" class="btn btn-primary flex-grow-1">
+                            <button onclick="applyForJob(${job.id})" class="btn btn-primary flex-grow-1 btn-apply-job">
                                 <i class="fas fa-paper-plane me-2"></i>Ứng tuyển
                             </button>
                         </div>
@@ -503,6 +585,11 @@ async function loadAllJobs(title = '', location = '', fieldId = '') {
                 </div>
             </div>
         `).join('')}`;
+
+        // Apply role-based permissions after rendering
+        if (typeof applyRoleBasedPermissions === 'function') {
+            applyRoleBasedPermissions();
+        }
     } catch (error) {
         console.error('Load all jobs error:', error);
         container.innerHTML = `

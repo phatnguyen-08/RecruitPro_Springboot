@@ -21,6 +21,36 @@ function isLoggedIn() {
 }
 
 /**
+ * Lấy role hiện tại (đã loại bỏ prefix ROLE_)
+ */
+function getCurrentRole() {
+    const user = getUserInfo();
+    return user && user.role ? user.role.replace('ROLE_', '') : '';
+}
+
+/**
+ * Kiểm tra user có phải là RECRUITER/COMPANY không
+ */
+function isRecruiter() {
+    const role = getCurrentRole();
+    return role === 'RECRUITER' || role === 'COMPANY';
+}
+
+/**
+ * Kiểm tra user có phải là CANDIDATE không
+ */
+function isCandidate() {
+    return getCurrentRole() === 'CANDIDATE';
+}
+
+/**
+ * Kiểm tra user có phải là ADMIN không
+ */
+function isAdmin() {
+    return getCurrentRole() === 'ADMIN';
+}
+
+/**
  * Cập nhật thanh điều hướng (Navbar) dựa trên trạng thái đăng nhập
  */
 function updateNavbar() {
@@ -50,18 +80,33 @@ function updateNavbar() {
         // Kiểm tra Role để hiển thị Menu tương ứng (xử lý cả ROLE_ prefix)
         const role = user.role ? user.role.replace('ROLE_', '') : '';
 
+        // Ẩn tất cả menu trước
+        if (recruiterMenu) recruiterMenu.classList.add('hidden');
+        if (candidateMenu) candidateMenu.classList.add('hidden');
+        if (adminMenu) adminMenu.classList.add('hidden');
+
+        // Ẩn tất cả dropdown items theo role
+        document.querySelectorAll('.dropdown-item-recruiter').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.dropdown-item-candidate').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.dropdown-item-admin').forEach(el => el.classList.add('hidden'));
+
         if (role === 'RECRUITER' || role === 'COMPANY') {
+            // Hiện recruiter menu
             if (recruiterMenu) recruiterMenu.classList.remove('hidden');
-            if (candidateMenu) candidateMenu.classList.add('hidden');
-            if (adminMenu) adminMenu.classList.add('hidden');
+            // Hiện recruiter dropdown items
+            document.querySelectorAll('.dropdown-item-recruiter').forEach(el => el.classList.remove('hidden'));
+            // Ẩn candidate-specific dropdown items (trong user dropdown)
+            document.querySelectorAll('.dropdown-item-candidate').forEach(el => el.classList.add('hidden'));
         } else if (role === 'CANDIDATE') {
+            // Hiện candidate menu
             if (candidateMenu) candidateMenu.classList.remove('hidden');
-            if (recruiterMenu) recruiterMenu.classList.add('hidden');
-            if (adminMenu) adminMenu.classList.add('hidden');
+            // Hiện candidate dropdown items
+            document.querySelectorAll('.dropdown-item-candidate').forEach(el => el.classList.remove('hidden'));
         } else if (role === 'ADMIN') {
+            // Hiện admin menu, KHÔNG hiện recruiter menu cho admin
             if (adminMenu) adminMenu.classList.remove('hidden');
-            if (recruiterMenu) recruiterMenu.classList.remove('hidden');
-            if (candidateMenu) candidateMenu.classList.add('hidden');
+            // Hiện admin dropdown items
+            document.querySelectorAll('.dropdown-item-admin').forEach(el => el.classList.remove('hidden'));
         }
 
         // Fetch unread notification count
@@ -77,6 +122,67 @@ function updateNavbar() {
         if (candidateMenu) candidateMenu.classList.add('hidden');
         if (adminMenu) adminMenu.classList.add('hidden');
     }
+}
+
+/**
+ * Ẩn các nút/chức năng không được phép dựa trên role
+ * Gọi sau khi trang load xong
+ */
+function applyRoleBasedPermissions() {
+    const role = getCurrentRole();
+
+    // Ẩn nút "Ứng tuyển ngay" với recruiter và người chưa đăng nhập
+    if (isRecruiter() || !isLoggedIn()) {
+        document.querySelectorAll('.btn-apply-job').forEach(el => el.classList.add('hidden'));
+    }
+
+    // Ẩn nút "Lưu tin" với recruiter và người chưa đăng nhập
+    if (isRecruiter() || !isLoggedIn()) {
+        document.querySelectorAll('.btn-save-job').forEach(el => el.classList.add('hidden'));
+    }
+
+    // Ẩn nút "Đăng tin tuyển dụng" với candidate
+    if (isCandidate()) {
+        document.querySelectorAll('.btn-post-job').forEach(el => el.classList.add('hidden'));
+    }
+
+    // Ẩn sidebar recruiter với candidate
+    if (isCandidate()) {
+        document.querySelectorAll('.sidebar-recruiter').forEach(el => el.classList.add('hidden'));
+    }
+
+    // Ẩn sidebar candidate với recruiter
+    if (isRecruiter()) {
+        document.querySelectorAll('.sidebar-candidate').forEach(el => el.classList.add('hidden'));
+    }
+
+    // Ẩn các menu items theo data-permission attribute
+    document.querySelectorAll('[data-permission]').forEach(el => {
+        const requiredPermission = el.getAttribute('data-permission');
+        let allowed = false;
+
+        switch (requiredPermission) {
+            case 'RECRUITER':
+                allowed = isRecruiter();
+                break;
+            case 'CANDIDATE':
+                allowed = isCandidate();
+                break;
+            case 'ADMIN':
+                allowed = isAdmin();
+                break;
+            case 'RECRUITER_OR_COMPANY':
+                allowed = isRecruiter();
+                break;
+            case 'AUTHENTICATED':
+                allowed = isLoggedIn();
+                break;
+        }
+
+        if (!allowed) {
+            el.classList.add('hidden');
+        }
+    });
 }
 
 /**
@@ -153,4 +259,7 @@ function getAuthHeaders() {
 }
 
 // Chạy cập nhật Navbar ngay khi trang web tải xong
-document.addEventListener('DOMContentLoaded', updateNavbar);
+document.addEventListener('DOMContentLoaded', function() {
+    updateNavbar();
+    applyRoleBasedPermissions();
+});

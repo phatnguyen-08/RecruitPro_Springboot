@@ -45,8 +45,13 @@ public class ApplicationServiceTest {
 
     @BeforeEach
     void setUp() {
+        User mockCandidateUser = new User();
+        mockCandidateUser.setId(20L);
+        mockCandidateUser.setEmail("candidate@test.com");
+
         mockRecruiterUser = new User();
         mockRecruiterUser.setId(10L);
+        mockRecruiterUser.setEmail("recruiter@test.com");
 
         Company mockCompany = new Company();
         mockCompany.setId(1L);
@@ -60,6 +65,7 @@ public class ApplicationServiceTest {
         CandidateProfile mockCandidate = new CandidateProfile();
         mockCandidate.setId(5L);
         mockCandidate.setFullName("Nguyen Van A");
+        mockCandidate.setUser(mockCandidateUser);
 
         mockApplication = new Application();
         mockApplication.setId(1000L);

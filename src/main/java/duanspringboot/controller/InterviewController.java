@@ -1,9 +1,11 @@
 package duanspringboot.controller;
 
+import duanspringboot.dto.Application.ApplicationResponse;
 import duanspringboot.dto.interview.InterviewRequest;
 import duanspringboot.dto.interview.InterviewResponse;
 import duanspringboot.enums.InterviewResult;
 import duanspringboot.security.CustomUserDetails;
+import duanspringboot.service.ApplicationService;
 import duanspringboot.service.InterviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.List;
 public class InterviewController {
 
     private final InterviewService interviewService;
+    private final ApplicationService applicationService;
 
     // 1. Tạo lịch phỏng vấn (Recruiter)
     @PostMapping
@@ -40,7 +43,16 @@ public class InterviewController {
         return ResponseEntity.ok(interviewService.getMyInterviews(recruiterId));
     }
 
-    // 3. Cập nhật kết quả phỏng vấn (Recruiter)
+    // 3. Lấy danh sách ứng viên có thể mời phỏng vấn (Recruiter)
+    @GetMapping("/available-candidates")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public ResponseEntity<List<ApplicationResponse>> getAvailableCandidatesForInterview(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        Long recruiterId = ((CustomUserDetails) userDetails).getId();
+        return ResponseEntity.ok(applicationService.getApplicationsAvailableForInterview(recruiterId));
+    }
+
+    // 4. Cập nhật kết quả phỏng vấn (Recruiter)
     @PatchMapping("/{id}/result")
     @PreAuthorize("hasRole('RECRUITER')")
     public ResponseEntity<InterviewResponse> updateResult(
@@ -52,7 +64,7 @@ public class InterviewController {
         return ResponseEntity.ok(interviewService.updateResult(id, result, note, recruiterId));
     }
 
-    // 4. Lấy chi tiết một cuộc phỏng vấn (Recruiter)
+    // 5. Lấy chi tiết một cuộc phỏng vấn (Recruiter)
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('RECRUITER')")
     public ResponseEntity<InterviewResponse> getInterviewById(
@@ -62,7 +74,7 @@ public class InterviewController {
         return ResponseEntity.ok(interviewService.getInterviewById(id, recruiterId));
     }
 
-    // 5. Xóa/Hủy một cuộc phỏng vấn (Recruiter)
+    // 6. Xóa/Hủy một cuộc phỏng vấn (Recruiter)
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('RECRUITER')")
     public ResponseEntity<Void> deleteInterview(

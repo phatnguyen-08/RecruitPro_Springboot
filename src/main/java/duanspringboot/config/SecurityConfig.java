@@ -51,6 +51,8 @@ public class SecurityConfig {
                         // API public
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/jobs/search").permitAll()
+                        .requestMatchers("/api/jobs/search/paginated").permitAll()
+                        .requestMatchers("/api/jobs/public/**").permitAll()
                         .requestMatchers("/api/jobs/{id}").permitAll()
                         .requestMatchers("/api/job-fields/**").permitAll()
                         .requestMatchers("/api/blogs/**").permitAll()
@@ -61,7 +63,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/jobs/**").hasRole("RECRUITER")
                         .requestMatchers("/api/applications/**").authenticated()
                         .requestMatchers("/api/interviews/**").hasRole("RECRUITER")
+                        .requestMatchers("/api/recruiter-approval/**").hasRole("RECRUITER")
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/recruiter-approvals/**").hasRole("ADMIN")
+                        .requestMatchers("/api/messages/**").authenticated()
 
                         .requestMatchers("/candidate/**").hasRole("CANDIDATE")
                         .requestMatchers("/recruiter/**").hasRole("RECRUITER")

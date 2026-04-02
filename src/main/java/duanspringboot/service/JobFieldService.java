@@ -29,6 +29,11 @@ public class JobFieldService {
         return mapToResponse(jobField);
     }
 
+    public JobField getJobFieldEntity(Long id) {
+        return jobFieldRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy lĩnh vực"));
+    }
+
     @Transactional
     public JobFieldResponse createJobField(JobFieldRequest request) {
         if (jobFieldRepository.findAllByOrderByNameAsc().stream()

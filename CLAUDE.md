@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RecruitPro is a Spring Boot recruitment platform with MySQL, Thymeleaf (server-side rendering), and Bootstrap 5 frontend. It supports three user roles: CANDIDATE, RECRUITER, and ADMIN.
+RecruitBox is a Spring Boot recruitment platform with MySQL, Thymeleaf (server-side rendering), and Bootstrap 5 frontend. It supports three user roles: CANDIDATE, RECRUITER, and ADMIN.
 
 ## Build Commands
 

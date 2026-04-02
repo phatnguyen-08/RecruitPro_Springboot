@@ -1,20 +1,30 @@
 package duanspringboot.controller;
 
+import duanspringboot.dto.HomeStatsResponse;
 import duanspringboot.dto.profile.CandidateProfileResponse;
+import duanspringboot.enums.JobStatus;
+import duanspringboot.enums.Role;
+import duanspringboot.repository.CompanyRepository;
+import duanspringboot.repository.JobPostingRepository;
+import duanspringboot.repository.UserRepository;
 import duanspringboot.security.CustomUserDetails;
 import duanspringboot.service.ApplicationService;
 import duanspringboot.service.CandidateProfileService;
 import duanspringboot.service.CompanyService;
 import duanspringboot.service.InterviewService;
+import duanspringboot.service.JobFieldService;
 import duanspringboot.service.JobPostingService;
 import duanspringboot.service.NotificationService;
+import duanspringboot.service.BlogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -29,11 +39,41 @@ public class ViewController {
     private final CompanyService companyService;
     private final InterviewService interviewService;
     private final NotificationService notificationService;
+    private final JobFieldService jobFieldService;
+    private final BlogService blogService;
+    private final JobPostingRepository jobPostingRepository;
+    private final UserRepository userRepository;
+    private final CompanyRepository companyRepository;
 
     // --- Trang chủ & Auth ---
     @GetMapping("/")
-    public String index() {
+    public String index(Model model) {
+        long totalJobs = jobPostingRepository.countByStatus(JobStatus.OPEN);
+        long totalCompanies = companyRepository.count();
+        long totalCandidates = userRepository.countByRole(Role.CANDIDATE);
+
+        HomeStatsResponse stats = HomeStatsResponse.builder()
+                .totalJobs(totalJobs)
+                .totalCompanies(totalCompanies)
+                .totalCandidates(totalCandidates)
+                .build();
+
+        model.addAttribute("homeStats", stats);
         return "common/index";
+    }
+
+    // --- Jobs by Field (Ngành nghề) ---
+    @GetMapping("/jobs/field/{fieldId}")
+    public String jobsByField(@PathVariable Long fieldId, Model model) {
+        try {
+            var field = jobFieldService.getJobFieldById(fieldId);
+            model.addAttribute("fieldId", fieldId);
+            model.addAttribute("fieldName", field.getName());
+        } catch (Exception e) {
+            model.addAttribute("fieldId", null);
+            model.addAttribute("fieldName", "Ngành nghề");
+        }
+        return "common/jobs-by-field";
     }
 
     @GetMapping("/login")
@@ -99,7 +139,39 @@ public class ViewController {
         return "candidate/my-applications";
     }
 
+    // --- Saved Jobs ---
+    @GetMapping("/candidate/saved-jobs")
+    public String savedJobs() {
+        return "candidate/saved-jobs";
+    }
+
+    // --- Job Alerts ---
+    @GetMapping("/candidate/job-alerts")
+    public String jobAlerts() {
+        return "candidate/job-alerts";
+    }
+
+    // --- Messages ---
+    @GetMapping("/messages")
+    public String messages() {
+        return "common/messages";
+    }
+
+    @GetMapping("/messages/{userId}")
+    public String conversationWith(@PathVariable Long userId, Model model) {
+        model.addAttribute("otherUserId", userId);
+        return "common/messages";
+    }
+
     // --- Recruiter Views ---
+    @GetMapping("/recruiter/approval")
+    public String recruiterApproval(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        return "recruiter/approval";
+    }
+
     @GetMapping("/recruiter/company")
     public String companyInfo(@AuthenticationPrincipal UserDetails userDetails, Model model) {
         if (userDetails != null) {
@@ -135,6 +207,11 @@ public class ViewController {
         return "recruiter/jobs/create-edit";
     }
 
+    @GetMapping("/recruiter/applications")
+    public String viewApplicationsList() {
+        return "redirect:/recruiter/jobs";
+    }
+
     @GetMapping("/recruiter/applications/job/{jobId}")
     public String viewApplicationsForJob(@PathVariable Long jobId, @AuthenticationPrincipal UserDetails userDetails,
             Model model) {
@@ -150,9 +227,44 @@ public class ViewController {
         return "recruiter/applications/job-applications";
     }
 
-    @GetMapping("/recruiter/pipeline")
-    public String viewPipeline() {
+    @GetMapping("/recruiter/applications/pipeline")
+    public String viewPipeline(@AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        Long userId = ((CustomUserDetails) userDetails).getId();
+        try {
+            var pipelineData = applicationService.getPipelineData(userId);
+            model.addAttribute("pendingApps", pipelineData.getPendingApps());
+            model.addAttribute("reviewingApps", pipelineData.getReviewingApps());
+            model.addAttribute("interviewingApps", pipelineData.getInterviewingApps());
+            model.addAttribute("finalApps", pipelineData.getFinalApps());
+            model.addAttribute("counts", pipelineData.getCounts());
+            model.addAttribute("myJobs", jobPostingService.getJobsByRecruiterUserId(userId));
+        } catch (Exception e) {
+            model.addAttribute("pendingApps", List.of());
+            model.addAttribute("reviewingApps", List.of());
+            model.addAttribute("interviewingApps", List.of());
+            model.addAttribute("finalApps", List.of());
+            model.addAttribute("counts", Map.of("pending", 0, "reviewing", 0, "interviewing", 0, "final", 0));
+            model.addAttribute("myJobs", List.of());
+        }
         return "recruiter/applications/pipeline";
+    }
+
+    @GetMapping("/recruiter/applications/{id}")
+    public String viewApplicationDetail(@PathVariable Long id, @AuthenticationPrincipal UserDetails userDetails, Model model) {
+        if (userDetails == null) {
+            return "redirect:/login";
+        }
+        Long userId = ((CustomUserDetails) userDetails).getId();
+        try {
+            var detail = applicationService.getApplicationDetail(id, userId);
+            model.addAttribute("application", detail);
+        } catch (Exception e) {
+            model.addAttribute("application", null);
+        }
+        return "recruiter/applications/application-detail";
     }
 
     @GetMapping("/recruiter/interviews")
@@ -179,18 +291,31 @@ public class ViewController {
 
     // --- Admin Views ---
     @GetMapping("/admin/dashboard")
+    @PreAuthorize("hasRole('ADMIN')")
     public String adminDashboard(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return "redirect:/login";
-        }
         return "admin/dashboard";
     }
 
     @GetMapping("/admin/blogs")
+    @PreAuthorize("hasRole('ADMIN')")
     public String adminBlogs(@AuthenticationPrincipal UserDetails userDetails) {
-        if (userDetails == null) {
-            return "redirect:/login";
-        }
         return "admin/blogs";
+    }
+
+    // --- Public Blogs ---
+    @GetMapping("/blogs")
+    public String publicBlogs(Model model) {
+        model.addAttribute("blogs", blogService.getAll());
+        return "common/blogs";
+    }
+
+    @GetMapping("/blogs/{id}")
+    public String publicBlogDetail(@PathVariable Long id, Model model) {
+        try {
+            model.addAttribute("blog", blogService.getById(id));
+        } catch (Exception e) {
+            model.addAttribute("blog", null);
+        }
+        return "common/blog-detail";
     }
 }
