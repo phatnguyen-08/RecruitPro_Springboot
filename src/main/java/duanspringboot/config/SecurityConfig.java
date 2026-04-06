@@ -68,6 +68,13 @@ public class SecurityConfig {
                         .requestMatchers("/api/admin/recruiter-approvals/**").hasRole("ADMIN")
                         .requestMatchers("/api/messages/**").authenticated()
 
+                        // MBTI API
+                        .requestMatchers("/api/mbti/**").hasRole("CANDIDATE")
+
+                        // MBTI Views
+                        .requestMatchers("/candidate/mbti-test").hasRole("CANDIDATE")
+                        .requestMatchers("/candidate/mbti-result").hasRole("CANDIDATE")
+
                         .requestMatchers("/candidate/**").hasRole("CANDIDATE")
                         .requestMatchers("/recruiter/**").hasRole("RECRUITER")
                         .requestMatchers("/admin/**").hasRole("ADMIN")

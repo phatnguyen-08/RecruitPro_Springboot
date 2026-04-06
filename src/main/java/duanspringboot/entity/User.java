@@ -69,4 +69,7 @@ public class User {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Notification> notifications;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private MbtiTestResult mbtiTestResult;
 }

@@ -16,6 +16,9 @@ DELETE FROM companies;
 DELETE FROM blogs;
 DELETE FROM users;
 DELETE FROM job_fields;
+DELETE FROM mbti_answers;
+DELETE FROM mbti_test_results;
+DELETE FROM mbti_questions;
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- =====================================================
@@ -334,3 +337,83 @@ INSERT INTO blogs (id, title, summary, content, image_url, author_id, created_at
  <p>Trong System Design, không có giải pháp "đúng" hay "sai" tuyệt đối, chỉ có giải pháp "phù hợp" với bối cảnh kinh doanh. Định lý CAP (Consistency, Availability, Partition Tolerance) chỉ ra rằng trong một hệ thống phân tán, bạn phải đánh đổi. Ví dụ: Với hệ thống hiển thị lượt Like trên Facebook, hệ thống ưu tiên tính sẵn sàng (Availability) - người dùng có thể thấy số Like hơi chậm một chút cũng không sao. Nhưng với hệ thống giao dịch ngân hàng, tính nhất quán (Consistency) phải được đặt lên hàng đầu, dữ liệu phải chính xác tuyệt đối ở mọi thời điểm.</p>',
  'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=800',
  6, NOW(), NOW());
+
+-- =====================================================
+-- MBTI QUESTIONS (60 questions - 15 per dimension)
+-- Dimension: EI (Extraversion/Introversion)
+-- Dimension: SN (Sensing/Intuition)
+-- Dimension: TF (Thinking/Feeling)
+-- Dimension: JP (Judging/Perceiving)
+-- =====================================================
+
+-- EI Questions (Extraversion/Introversion) - A = E, B = I
+INSERT INTO mbti_questions (question_text, option_a, option_b, dimension, question_order) VALUES
+('Trong các bữa tiệc, bạn thường:', 'Trò chuyện với nhiều người, kể cả người lạ', 'Chỉ nói chuyện với vài người quen biết', 'EI', 1),
+('Sau một tuần làm việc căng thẳng, bạn muốn:', 'Đi chơi với bạn bè để giải tỏa', 'Ở nhà một mình nghỉ ngơi', 'EI', 2),
+('Khi gặp vấn đề, bạn thường:', 'Thảo luận với người khác để tìm giải pháp', 'Tự suy nghĩ và tìm giải pháp một mình', 'EI', 3),
+('Trong các cuộc họp nhóm, bạn thường:', 'Nói nhiều, đưa ra nhiều ý kiến', 'Lắng nghe và chỉ nói khi cần thiết', 'EI', 4),
+('Bạn thích công việc nào hơn?', 'Công việc cần giao tiếp nhiều với mọi người', 'Công việc có thể làm độc lập, ít giao tiếp', 'EI', 5),
+('Khi làm quen với môi trường mới, bạn:', 'Dễ dàng hòa nhập và kết bạn mới nhanh', 'Cần thời gian để quen dần, quan sát trước', 'EI', 6),
+('Bạn thường được mọi người đánh giá là:', 'Người năng động, thích nói chuyện', 'Người điềm đạm, ít nói', 'EI', 7),
+('Khi bạn có tin vui, bạn:', 'Chia sẻ ngay với mọi người', 'Giữ cho mình hoặc chỉ nói với người thân', 'EI', 8),
+('Trong tình huống xã hội, bạn:', 'Thoải mái bắt đầu cuộc trò chuyện', 'Thích khi người khác bắt chuyện trước', 'EI', 9),
+('Bạn cảm thấy hứng thú hơn với:', 'Các hoạt động nhóm, team building', 'Các sở thích cá nhân như đọc sách, nghe nhạc', 'EI', 10),
+('Khi phải thuyết trình trước đám đông, bạn:', 'Cảm thấy hào hứng và tự tin', 'Cảm thấy lo lắng nhưng cố gắng hoàn thành', 'EI', 11),
+('Cuối tuần lý tưởng của bạn là:', 'Đi dã ngoại, tiệc tùng với bạn bè', 'Ở nhà đọc sách, xem phim một mình', 'EI', 12),
+('Bạn thường làm việc hiệu quả hơn khi:', 'Làm việc nhóm, thảo luận liên tục', 'Làm việc một mình trong không gian yên tĩnh', 'EI', 13),
+('Khi gặp người lạ, bạn thường:', 'Dễ dàng bắt chuyện và làm quen', 'Cần thời gian để cảm thấy thoải mái', 'EI', 14),
+('Bạn thích cách giao tiếp nào hơn?', 'Gặp mặt trực tiếp hoặc gọi điện thoại', 'Nhắn tin hoặc email để có thời gian suy nghĩ', 'EI', 15);
+
+-- SN Questions (Sensing/Intuition) - A = S, B = N
+INSERT INTO mbti_questions (question_text, option_a, option_b, dimension, question_order) VALUES
+('Bạn tin tưởng vào thông tin từ:', 'Kinh nghiệm thực tế và dữ liệu cụ thể', 'Trực giác và khả năng suy luận', 'SN', 16),
+('Khi đọc một cuốn sách, bạn thích:', 'Tác phẩm mô tả chi tiết, có thật', 'Tác phẩm khoa học viễn tưởng, tưởng tượng', 'SN', 17),
+('Bạn thường chú ý đến:', 'Chi tiết cụ thể trong công việc', 'Bức tranh tổng thể và ý tưởng lớn', 'SN', 18),
+('Khi học một điều mới, bạn thích:', 'Học theo quy trình từng bước cụ thể', 'Tự khám phá và tìm cách riêng', 'SN', 19),
+('Bạn đánh giá một người dựa trên:', 'Hành động thực tế và kết quả', 'Ý định và tiềm năng của họ', 'SN', 20),
+('Khi giải quyết vấn đề, bạn ưu tiên:', 'Giải pháp đã được chứng minh hiệu quả', 'Giải pháp sáng tạo, mới mẻ', 'SN', 21),
+('Bạn thích cách làm việc nào hơn?', 'Tuân theo các quy trình đã có', 'Tìm cách cải tiến và đổi mới', 'SN', 22),
+('Khi mô tả một sự việc, bạn thường:', 'Mô tả chi tiết, cụ thể', 'Nói về ý nghĩa và kết nối', 'SN', 23),
+('Bạn quan tâm hơn đến:', 'Thực tại và những gì đang xảy ra', 'Tương lai và những khả năng có thể', 'SN', 24),
+('Trong một dự án, bạn thường đóng vai trò:', 'Người thực hiện các công việc cụ thể', 'Người đưa ra ý tưởng và tầm nhìn', 'SN', 25),
+('Bạn thích công việc nào hơn?', 'Công việc có quy trình rõ ràng', 'Công việc cần sáng tạo và đổi mới', 'SN', 26),
+('Khi gặp khó khăn, bạn thường:', 'Áp dụng các giải pháp đã biết', 'Tìm cách mới, khác biệt', 'SN', 27),
+('Bạn tin vào:', 'Điều gì đã được chứng minh bằng thực tế', 'Khả năng và tiềm năng của con người', 'SN', 28),
+('Bạn thích làm việc với:', 'Dữ liệu và thông tin cụ thể', 'Ý tưởng và khái niệm trừu tượng', 'SN', 29),
+('Khi lập kế hoạch, bạn:', 'Chi tiết từng bước thực hiện', 'Chỉ phác thảo ý tưởng chính', 'SN', 30);
+
+-- TF Questions (Thinking/Feeling) - A = T, B = F
+INSERT INTO mbti_questions (question_text, option_a, option_b, dimension, question_order) VALUES
+('Khi đưa ra quyết định quan trọng, bạn dựa vào:', 'Logic và phân tích khách quan', 'Cảm xúc và tác động đến người khác', 'TF', 31),
+('Trong tranh luận, bạn ưu tiên:', 'Sự thật và logic đúng đắn', 'Cảm xúc và quan điểm của mỗi người', 'TF', 32),
+('Bạn cảm thấy thoải mái hơn khi:', 'Phân tích vấn đề một cách logic', 'Hiểu và chia sẻ cảm xúc người khác', 'TF', 33),
+('Khi người thân gặp khó khăn, bạn thường:', 'Đưa ra lời khuyên và giải pháp cụ thể', 'Lắng nghe và động viên tinh thần', 'TF', 34),
+('Bạn đánh giá một quyết định dựa trên:', 'Hiệu quả và kết quả thực tế', 'Ảnh hưởng đến cảm xúc mọi người', 'TF', 35),
+('Trong công việc, bạn coi trọng:', 'Công bằng và nguyên tắc', 'Sự đồng cảm và hỗ trợ đồng nghiệp', 'TF', 36),
+('Khi phải phê bình người khác, bạn:', 'Nêu rõ vấn đề một cách thẳng thắn', 'Cố gắng nhẹ nhàng để không làm họ tổn thương', 'TF', 37),
+('Bạn thường bị đánh giá là:', 'Người thực tế, ít cảm xúc', 'Người biết quan tâm, cảm thông', 'TF', 38),
+('Khi đứng trước hai lựa chọn, bạn ưu tiên:', 'Lựa chọn logic và hợp lý nhất', 'Lựa chọn phù hợp với giá trị và cảm xúc', 'TF', 39),
+('Bạn cảm thấy khó khăn hơn với:', 'Việc đưa ra quyết định cảm xúc', 'Việc đưa ra quyết định thiếu cảm xúc', 'TF', 40),
+('Trong nhóm, bạn thường là người:', 'Đưa ra nhận xét thẳng thắn', 'Giữ hòa khí và động viên mọi người', 'TF', 41),
+('Bạn tin rằng thành công đến từ:', 'Phân tích đúng đắn và hành động logic', 'Đam mê và sự tận tâm', 'TF', 42),
+('Khi thấy ai đó khóc, bạn thường:', 'Hỏi lý do và tìm giải pháp', 'Cảm thấy muốn an ủi và chia sẻ', 'TF', 43),
+('Bạn ưu tiên giá trị nào hơn?', 'Sự thật và công bằng', 'Sự hòa thuận và thiện chí', 'TF', 44),
+('Khi đưa ra phản hồi, bạn tập trung vào:', 'Những điểm cần cải thiện', 'Những điểm tích cực trước', 'TF', 45);
+
+-- JP Questions (Judging/Perceiving) - A = J, B = P
+INSERT INTO mbti_questions (question_text, option_a, option_b, dimension, question_order) VALUES
+('Bạn thích cách làm việc nào hơn?', 'Có kế hoạch chi tiết từ trước', 'Linh hoạt, thích ứng theo tình huống', 'JP', 46),
+('Khi có deadline, bạn thường:', 'Hoàn thành trước hạn một cách thoải mái', 'Làm đến phút chót mới xong', 'JP', 47),
+('Bạn cảm thấy thoải mái hơn khi:', 'Mọi việc được sắp xếp theo kế hoạch', 'Có sự thay đổi bất ngờ và thử thách mới', 'JP', 48),
+('Trong các dự án, bạn thích:', 'Tuân thủ kế hoạch đã đề ra', 'Thay đổi và điều chỉnh theo quá trình', 'JP', 49),
+('Bạn thường được mọi người đánh giá là:', 'Người có tổ chức, kỷ luật', 'Người linh hoạt, thích nghi tốt', 'JP', 50),
+('Khi đi du lịch, bạn thích:', 'Lên lịch trình chi tiết trước', 'Đi và quyết định tại chỗ', 'JP', 51),
+('Bạn cảm thấy căng thẳng khi:', 'Kế hoạch bị thay đổi đột ngột', 'Phải tuân thủ quy trình cứng nhắc', 'JP', 52),
+('Cách bạn giải quyết công việc:', 'Làm từng bước theo trình tự', 'Làm theo cảm hứng, có thể nhảy cóc', 'JP', 53),
+('Bạn thích môi trường làm việc:', 'Có quy trình và nguyên tắc rõ ràng', 'Mở và linh hoạt, cho phép sáng tạo', 'JP', 54),
+('Khi bắt đầu một công việc mới, bạn:', 'Tìm hiểu kỹ và lập kế hoạch chi tiết', 'Đi vào làm ngay và học dần', 'JP', 55),
+('Bạn ưu tiên:', 'Hoàn thành công việc đúng hạn', 'Khám phá các khả năng mới', 'JP', 56),
+('Phòng làm việc/bàn làm việc của bạn:', 'Gọn gàng, ngăn nắp, có trật tự', 'Có thể bừa bộn nhưng biết mọi thứ ở đâu', 'JP', 57),
+('Khi có nhiều việc cùng lúc, bạn:', 'Lên danh sách ưu tiên và làm theo', 'Làm việc nào thấy hứng trước', 'JP', 58),
+('Bạn tin rằng:', 'Kỷ luật là chìa khóa thành công', 'Sự linh hoạt giúp thích nghi tốt hơn', 'JP', 59),
+('Khi phải đưa ra quyết định nhanh, bạn:', 'Thu thập thông tin và quyết định dứt khoát', 'Cân nhắc nhiều lựa chọn, có thể thay đổi sau', 'JP', 60);
