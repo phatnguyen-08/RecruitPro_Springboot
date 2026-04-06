@@ -15,6 +15,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class JobPostingResponse {
     private Long id;
+    private Long companyId;
+    private Long recruiterUserId;
+    private String recruiterEmail;
     private String title;
     private String companyName;
     private String description;

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import duanspringboot.dto.auth.AuthResponse;
 import duanspringboot.dto.auth.LoginRequest;
 import duanspringboot.dto.auth.RegisterRequest;
+import duanspringboot.enums.Role;
 import duanspringboot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import duanspringboot.entity.User;
@@ -35,7 +36,17 @@ public class AuthService {
         userRepository.save(user);
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return AuthResponse.builder().token(token).email(user.getEmail()).role(user.getRole().name()).build();
+        String message = null;
+        if (request.getRole() == Role.RECRUITER) {
+            message = "Đăng ký thành công! Vui lòng cung cấp thông tin công ty để được phê duyệt.";
+        }
+        return AuthResponse.builder()
+                .token(token)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .message(message)
+                .build();
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -47,6 +58,21 @@ public class AuthService {
                 .orElseThrow(() -> new RuntimeException("Email không tồn tại"));
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
-        return AuthResponse.builder().token(token).email(user.getEmail()).role(user.getRole().name()).build();
+        return AuthResponse.builder()
+                .token(token)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .build();
+    }
+
+    public AuthResponse generateTokenForUser(User user) {
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        return AuthResponse.builder()
+                .token(token)
+                .userId(user.getId())
+                .email(user.getEmail())
+                .role(user.getRole().name())
+                .build();
     }
 }

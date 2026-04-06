@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main-layout}">
+
+<head>
+    <title>Trắc nghiệm MBTI - J2PP</title>
+    <th:block layout:fragment="styles">
+        <style>
+            .question-card {
+                transition: all 0.3s ease;
+                border: 2px solid transparent;
+            }
+            .question-card:hover {
+                box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            }
+            .option-btn {
+                transition: all 0.2s ease;
+                border: 2px solid #e0e0e0;
+            }
+            .option-btn:hover {
+                border-color: #4f46e5;
+                background-color: #f8f7ff;
+            }
+            .option-btn.selected {
+                border-color: #4f46e5;
+                background-color: #4f46e5;
+                color: white;
+            }
+            .progress-section {
+                position: sticky;
+                top: 80px;
+                z-index: 100;
+            }
+            .question-number {
+                min-width: 40px;
+                height: 40px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+                background: #f0f0f0;
+                font-weight: 600;
+            }
+            .question-number.answered {
+                background: #10b981;
+                color: white;
+            }
+            .question-number.current {
+                background: #4f46e5;
+                color: white;
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+    <div layout:fragment="content" class="py-4">
+        <div class="container">
+            <!-- Header -->
+            <div class="text-center mb-5">
+                <h1 class="fw-bold mb-3">
+                    <i class="fas fa-brain text-primary me-2"></i>
+                    Trắc nghiệm tính cách MBTI
+                </h1>
+                <p class="text-muted">
+                    Khám phá tính cách của bạn và tìm hiểu nghề nghiệp phù hợp. Bài trắc nghiệm gồm
+                    <span th:text="${#lists.size(questions)}">60</span> câu hỏi với 2 lựa chọn A/B.
+                </p>
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="fw-semibold">Tiến độ</span>
+                            <span id="progress-text">0 / <span th:text="${#lists.size(questions)}">60</span> câu</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div id="progress-bar" class="progress-bar bg-primary" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Questions Form -->
+            <form id="mbti-form">
+                <div id="questions-container">
+                    <!-- Warning if empty -->
+                    <div th:if="${#lists.isEmpty(questions)}" class="alert alert-warning text-center">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Không tìm thấy câu hỏi trắc nghiệm nào. Vui lòng liên hệ quản trị viên hoặc kiểm tra dữ liệu mẫu.
+                    </div>
+                    
+                    <div th:each="question, iterStat : ${questions}" class="question-card card border-0 shadow-sm mb-4" th:id="'question-' + ${question.id}">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start gap-3 mb-3">
+                                <span class="question-number" th:text="${iterStat.count}">1</span>
+                                <div>
+                                    <h5 class="fw-semibold mb-1" th:text="${question.questionText}">Câu hỏi</h5>
+                                    <small class="text-muted">
+                                        <i class="fas fa-tag me-1"></i>
+                                        <span th:text="${question.dimension == 'EI'} ? 'Hướng ngoại/Hướng nội' : (${question.dimension == 'SN'} ? 'Giác quan/Trực giác' : (${question.dimension == 'TF'} ? 'Lý trí/Cảm xúc' : 'Nguyên tắc/Linh hoạt'))">
+</span>
+                                    </small>
+                                </div>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <button type="button" class="option-btn btn btn-light w-100 text-start py-3 px-4"
+                                            th:data-question="${question.id}" data-option="A"
+                                            onclick="selectOption(this)">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge bg-primary-subtle text-primary">A</span>
+                                            <span th:text="${question.optionA}">Option A</span>
+                                        </div>
+                                    </button>
+                                </div>
+                                <div class="col-md-6">
+                                    <button type="button" class="option-btn btn btn-light w-100 text-start py-3 px-4"
+                                            th:data-question="${question.id}" data-option="B"
+                                            onclick="selectOption(this)">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <span class="badge bg-secondary-subtle text-secondary">B</span>
+                                            <span th:text="${question.optionB}">Option B</span>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Section -->
+                <div class="card border-0 shadow-sm mt-4">
+                    <div class="card-body text-center py-4">
+                        <p class="text-muted mb-3">Bạn đã trả lời <span id="answered-count">0</span> / <span th:text="${#lists.size(questions)}">60</span> câu hỏi</p>
+                        <button type="button" class="btn btn-primary btn-lg px-5" onclick="submitTest()">
+                            <i class="fas fa-paper-plane me-2"></i>Nộp bài và xem kết quả
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Result Modal -->
+        <div class="modal fade" id="resultModal" tabindex="-1">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title">
+                            <i class="fas fa-check-circle me-2"></i>Kết quả trắc nghiệm MBTI
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="result-content">
+                        <!-- Result will be loaded here -->
+                    </div>
+                    <div class="modal-footer">
+                        <a th:href="@{/candidate/mbti-result}" class="btn btn-primary">
+                            <i class="fas fa-eye me-2"></i>Xem chi tiết kết quả
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script th:inline="javascript">
+            // DEBUG: Check questions in console
+            const questions = /*[[${questions}]]*/ [];
+            console.log("MBTI Questions:", questions);
+            
+            // Store all answers
+            const answers = {};
+            const totalQuestions = /*[[${#lists.size(questions)}]]*/ 60;
+
+            function selectOption(button) {
+                const questionId = button.getAttribute('data-question');
+                const option = button.getAttribute('data-option');
+
+                // Remove selected from all options for this question
+                const questionCard = button.closest('.question-card');
+                questionCard.querySelectorAll('.option-btn').forEach(btn => {
+                    btn.classList.remove('selected');
+                });
+
+                // Add selected to clicked button
+                button.classList.add('selected');
+
+                // Store answer
+                answers[questionId] = option;
+
+                // Update progress
+                updateProgress();
+            }
+
+            function updateProgress() {
+                const answered = Object.keys(answers).length;
+                const percentage = (answered / totalQuestions) * 100;
+
+                document.getElementById('progress-text').textContent = `${answered} / ${totalQuestions} câu`;
+                document.getElementById('progress-bar').style.width = `${percentage}%`;
+                document.getElementById('answered-count').textContent = answered;
+
+                // Update question numbers
+                document.querySelectorAll('.question-card').forEach((card, index) => {
+                    const numberSpan = card.querySelector('.question-number');
+                    const questionId = card.id.replace('question-', '');
+                    if (answers[questionId]) {
+                        numberSpan.classList.add('answered');
+                        numberSpan.classList.remove('current');
+                    } else if (index === Object.keys(answers).length) {
+                        numberSpan.classList.add('current');
+                    } else {
+                        numberSpan.classList.remove('answered', 'current');
+                    }
+                });
+            }
+
+            async function submitTest() {
+                const answered = Object.keys(answers).length;
+
+                if (answered < totalQuestions) {
+                    const confirm = await showConfirm(
+                        `Bạn mới chỉ trả lời ${answered}/${totalQuestions} câu hỏi. Bạn có muốn nộp bài không?`,
+                        'Câu chưa trả lời sẽ được chọn ngẫu nhiên.'
+                    );
+                    if (!confirm) return;
+                }
+
+                // Prepare request
+                const request = {
+                    answers: Object.entries(answers).map(([questionId, selectedOption]) => ({
+                        questionId: parseInt(questionId),
+                        selectedOption: selectedOption
+                    }))
+                };
+
+                try {
+                    const response = await fetch('/api/mbti/submit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(request)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Submit failed');
+                    }
+
+                    const result = await response.json();
+                    showResult(result);
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast('error', 'Có lỗi xảy ra khi nộp bài. Vui lòng thử lại.');
+                }
+            }
+
+            function showResult(result) {
+                const modal = new bootstrap.Modal(document.getElementById('resultModal'));
+                const content = document.getElementById('result-content');
+
+                // Calculate percentages
+                const eScore = result.eScore || 0;
+                const iScore = result.iScore || 0;
+                const sScore = result.sScore || 0;
+                const nScore = result.nScore || 0;
+                const tScore = result.tScore || 0;
+                const fScore = result.fScore || 0;
+                const jScore = result.jScore || 0;
+                const pScore = result.pScore || 0;
+
+                const eiTotal = eScore + iScore;
+                const snTotal = sScore + nScore;
+                const tfTotal = tScore + fScore;
+                const jpTotal = jScore + pScore;
+
+                content.innerHTML = `
+                    <div class="text-center mb-4">
+                        <div class="display-1 fw-bold text-primary">${result.resultType}</div>
+                        <h4 class="text-muted">${result.description ? result.description.substring(0, 50) + '...' : ''}</h4>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted">Hướng ngoại / Hướng nội</small>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span>E: ${eScore}</span>
+                                    <div class="progress flex-grow-1 mx-3" style="height: 10px;">
+                                        <div class="progress-bar bg-primary" style="width: ${eiTotal > 0 ? (eScore/eiTotal*100) : 50}%"></div>
+                                    </div>
+                                    <span>I: ${iScore}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted">Giác quan / Trực giác</small>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span>S: ${sScore}</span>
+                                    <div class="progress flex-grow-1 mx-3" style="height: 10px;">
+                                        <div class="progress-bar bg-success" style="width: ${snTotal > 0 ? (sScore/snTotal*100) : 50}%"></div>
+                                    </div>
+                                    <span>N: ${nScore}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted">Lý trí / Cảm xúc</small>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span>T: ${tScore}</span>
+                                    <div class="progress flex-grow-1 mx-3" style="height: 10px;">
+                                        <div class="progress-bar bg-warning" style="width: ${tfTotal > 0 ? (tScore/tfTotal*100) : 50}%"></div>
+                                    </div>
+                                    <span>F: ${fScore}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded">
+                                <small class="text-muted">Nguyên tắc / Linh hoạt</small>
+                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                    <span>J: ${jScore}</span>
+                                    <div class="progress flex-grow-1 mx-3" style="height: 10px;">
+                                        <div class="progress-bar bg-info" style="width: ${jpTotal > 0 ? (jScore/jpTotal*100) : 50}%"></div>
+                                    </div>
+                                    <span>P: ${pScore}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                modal.show();
+
+                // Redirect after modal close
+                document.getElementById('resultModal').addEventListener('hidden.bs.modal', function () {
+                    window.location.href = '/candidate/mbti-result';
+                }, { once: true });
+            }
+
+            function showConfirm(title, message) {
+                return new Promise((resolve) => {
+                    const confirmed = window.confirm(`${title}\n\n${message}`);
+                    resolve(confirmed);
+                });
+            }
+        </script>
+    </th:block>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+    layout:decorate="~{layout/main-layout}">
+
+<head>
+    <title>Kết quả MBTI - J2PP</title>
+    <th:block layout:fragment="styles">
+        <style>
+            .mbti-type {
+                font-size: 5rem;
+                font-weight: 800;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            .dimension-bar {
+                height: 12px;
+                border-radius: 6px;
+                background: #f0f0f0;
+                overflow: hidden;
+            }
+            .dimension-bar-fill {
+                height: 100%;
+                border-radius: 6px;
+                transition: width 0.5s ease;
+            }
+            .trait-card {
+                transition: transform 0.2s ease;
+            }
+            .trait-card:hover {
+                transform: translateY(-2px);
+            }
+        </style>
+    </th:block>
+</head>
+
+<body>
+    <div layout:fragment="content" class="py-4">
+        <div class="container">
+            <!-- No Result State -->
+            <div th:if="${result == null}" class="text-center py-5">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-clipboard-list fa-5x text-muted"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">Bạn chưa làm bài trắc nghiệm MBTI</h3>
+                        <p class="text-muted mb-4">Khám phá tính cách của bạn và tìm hiểu nghề nghiệp phù hợp thông qua bài trắc nghiệm MBTI.</p>
+                        <a th:href="@{/candidate/mbti-test}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play me-2"></i>Bắt đầu làm bài
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Result State -->
+            <div th:if="${result != null}">
+                <!-- Header -->
+                <div class="text-center mb-5">
+                    <div class="mbti-type" th:text="${result.resultType}">INTJ</div>
+                    <h2 class="text-muted">Kết quả trắc nghiệm MBTI của bạn</h2>
+                    <p class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        Làm bài ngày: <span th:text="${#temporals.format(result.takenAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                    </p>
+                </div>
+
+                <div class="row g-4">
+                    <!-- Left Column - Result Overview -->
+                    <div class="col-lg-8">
+                        <!-- MBTI Type Description -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-body">
+                                <h4 class="fw-bold mb-3">
+                                    <i class="fas fa-user-circle text-primary me-2"></i>Mô tả tính cách
+                                </h4>
+                                <p class="mb-0" th:text="${result.description}">
+                                    Mô tả chi tiết về loại tính cách của bạn...
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Dimension Scores -->
+                        <div class="card border-0 shadow-sm mb-4">
+                            <div class="card-header bg-white py-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fas fa-chart-bar text-primary me-2"></i>Điểm các chiều hướng
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-4">
+                                    <!-- E/I -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Hướng ngoại (E)</span>
+                                                <span class="fw-bold text-primary" th:text="${result.eScore}">12</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill bg-primary"
+                                                    th:style="'width: ' + ${(result.eScore + result.iScore) > 0 ? (result.eScore * 100 / (result.eScore + result.iScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Extraversion</small>
+                                                <span th:text="${(result.eScore + result.iScore) > 0 ? #numbers.formatDecimal(result.eScore * 100.0 / (result.eScore + result.iScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-light rounded mt-2">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Hướng nội (I)</span>
+                                                <span class="fw-bold text-secondary" th:text="${result.iScore}">12</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill bg-secondary"
+                                                    th:style="'width: ' + ${(result.eScore + result.iScore) > 0 ? (result.iScore * 100 / (result.eScore + result.iScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Introversion</small>
+                                                <span th:text="${(result.eScore + result.iScore) > 0 ? #numbers.formatDecimal(result.iScore * 100.0 / (result.eScore + result.iScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- S/N -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Giác quan (S)</span>
+                                                <span class="fw-bold text-success" th:text="${result.sScore}">10</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill bg-success"
+                                                    th:style="'width: ' + ${(result.sScore + result.nScore) > 0 ? (result.sScore * 100 / (result.sScore + result.nScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Sensing</small>
+                                                <span th:text="${(result.sScore + result.nScore) > 0 ? #numbers.formatDecimal(result.sScore * 100.0 / (result.sScore + result.nScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-light rounded mt-2">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Trực giác (N)</span>
+                                                <span class="fw-bold text-info" th:text="${result.nScore}">10</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill bg-info"
+                                                    th:style="'width: ' + ${(result.sScore + result.nScore) > 0 ? (result.nScore * 100 / (result.sScore + result.nScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Intuition</small>
+                                                <span th:text="${(result.sScore + result.nScore) > 0 ? #numbers.formatDecimal(result.nScore * 100.0 / (result.sScore + result.nScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- T/F -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Lý trí (T)</span>
+                                                <span class="fw-bold text-warning" th:text="${result.tScore}">15</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill bg-warning"
+                                                    th:style="'width: ' + ${(result.tScore + result.fScore) > 0 ? (result.tScore * 100 / (result.tScore + result.fScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Thinking</small>
+                                                <span th:text="${(result.tScore + result.fScore) > 0 ? #numbers.formatDecimal(result.tScore * 100.0 / (result.tScore + result.fScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-light rounded mt-2">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Cảm xúc (F)</span>
+                                                <span class="fw-bold text-danger" th:text="${result.fScore}">5</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill bg-danger"
+                                                    th:style="'width: ' + ${(result.tScore + result.fScore) > 0 ? (result.fScore * 100 / (result.tScore + result.fScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Feeling</small>
+                                                <span th:text="${(result.tScore + result.fScore) > 0 ? #numbers.formatDecimal(result.fScore * 100.0 / (result.tScore + result.fScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- J/P -->
+                                    <div class="col-md-6">
+                                        <div class="p-3 bg-light rounded">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Nguyên tắc (J)</span>
+                                                <span class="fw-bold text-purple" th:text="${result.jScore}">14</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill" style="background-color: #9333ea;"
+                                                    th:style="'width: ' + ${(result.jScore + result.pScore) > 0 ? (result.jScore * 100 / (result.jScore + result.pScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Judging</small>
+                                                <span th:text="${(result.jScore + result.pScore) > 0 ? #numbers.formatDecimal(result.jScore * 100.0 / (result.jScore + result.pScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-light rounded mt-2">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-semibold">Linh hoạt (P)</span>
+                                                <span class="fw-bold text-cyan" th:text="${result.pScore}">6</span>
+                                            </div>
+                                            <div class="dimension-bar">
+                                                <div class="dimension-bar-fill" style="background-color: #06b6d4;"
+                                                    th:style="'width: ' + ${(result.jScore + result.pScore) > 0 ? (result.pScore * 100 / (result.jScore + result.pScore)) : 50} + '%'"></div>
+                                            </div>
+                                            <div class="d-flex justify-content-between mt-2">
+                                                <small class="text-muted">Perceiving</small>
+                                                <span th:text="${(result.jScore + result.pScore) > 0 ? #numbers.formatDecimal(result.pScore * 100.0 / (result.jScore + result.pScore), 1, 0) + '%' : '50%'}">50%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Strengths & Weaknesses -->
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="trait-card card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-success bg-opacity-10 py-3">
+                                        <h5 class="fw-bold mb-0 text-success">
+                                            <i class="fas fa-thumbs-up me-2"></i>Điểm mạnh
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0" th:text="${result.strengths}">Điểm mạnh của bạn...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="trait-card card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-danger bg-opacity-10 py-3">
+                                        <h5 class="fw-bold mb-0 text-danger">
+                                            <i class="fas fa-exclamation-triangle me-2"></i>Điểm cần cải thiện
+                                        </h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="mb-0" th:text="${result.weaknesses}">Điểm yếu của bạn...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column - Careers -->
+                    <div class="col-lg-4">
+                        <div class="card border-0 shadow-sm sticky-top" style="top: 100px;">
+                            <div class="card-header bg-primary text-white py-3">
+                                <h5 class="fw-bold mb-0">
+                                    <i class="fas fa-briefcase me-2"></i>Nghề nghiệp phù hợp
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="text-muted mb-4">Dựa trên loại tính cách <span class="fw-bold" th:text="${result.resultType}">INTJ</span> của bạn, dưới đây là những nghề nghiệp phù hợp:</p>
+                                <div class="d-flex flex-wrap gap-2" th:if="${result.careers != null}">
+                                    <th:block th:each="career : ${#strings.arraySplit(result.careers, ',')}">
+                                        <span class="badge bg-light text-dark px-3 py-2 fs-6" th:text="${#strings.trim(career)}">Nghề</span>
+                                    </th:block>
+                                </div>
+                            </div>
+                            <div class="card-footer bg-white">
+                                <a th:href="@{/}" class="btn btn-outline-primary w-100">
+                                    <i class="fas fa-search me-2"></i>Tìm việc phù hợp với bạn
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Retake Test -->
+                <div class="text-center mt-5">
+                    <p class="text-muted mb-3">Muốn làm lại bài trắc nghiệm?</p>
+                    <button class="btn btn-outline-primary" onclick="retakeTest()">
+                        <i class="fas fa-redo me-2"></i>Làm lại bài trắc nghiệm
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Retake Confirm Modal -->
+        <div class="modal fade" id="retakeModal" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-exclamation-triangle text-warning me-2"></i>Xác nhận làm lại
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Bạn có chắc chắn muốn làm lại bài trắc nghiệm MBTI?</p>
+                        <p class="text-muted mb-0">Kết quả hiện tại sẽ bị xóa và thay thế bằng kết quả mới.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="button" class="btn btn-primary" onclick="resetMbtiTest()">
+                            <i class="fas fa-redo me-2"></i>Làm lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <th:block layout:fragment="scripts">
+        <script>
+            function retakeTest() {
+                const modal = new bootstrap.Modal(document.getElementById('retakeModal'));
+                modal.show();
+            }
+
+            function confirmRetake() {
+                window.location.href = '/candidate/mbti-test';
+            }
+        </script>
+    </th:block>
+    <script>
+    async function resetMbtiTest() {
+        try {
+            const response = await fetch('/api/mbti/reset', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                    // Nếu project của bạn có dùng CSRF Token thì nhớ truyền vào đây
+                }
+            });
+
+            if (response.ok) {
+                // Xóa thành công -> Chuyển hướng người dùng về lại trang làm bài
+                window.location.href = '/candidate/mbti-test';
+            } else {
+                alert('Có lỗi xảy ra khi hệ thống thử xóa kết quả cũ. Vui lòng thử lại!');
+            }
+        } catch (error) {
+            console.error('Lỗi:', error);
+            alert('Không thể kết nối đến máy chủ!');
+        }
+    }
+</script>
+</body>
+</html>

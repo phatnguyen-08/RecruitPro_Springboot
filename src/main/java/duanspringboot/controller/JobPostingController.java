@@ -106,10 +106,9 @@ public class JobPostingController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer minSalary,
             @RequestParam(required = false) String title,
-            @RequestParam(required = false) Long fieldId,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(jobPostingService.searchJobsPaginated(location, minSalary, title, fieldId, page, size));
+        return ResponseEntity.ok(jobPostingService.searchJobsPaginated(location, minSalary, title, page, size));
     }
 
     // 9. Lấy tin tuyển dụng của chính mình với phân trang (Recruiter)
@@ -121,5 +120,13 @@ public class JobPostingController {
             @RequestParam(defaultValue = "10") int size) {
         Long userId = ((CustomUserDetails) userDetails).getId();
         return ResponseEntity.ok(jobPostingService.getMyCompanyJobsPaginated(userId, page, size));
+    }
+
+    // 10. Lấy tất cả tin đang mở với phân trang (cho trang chủ)
+    @GetMapping("/public/paginated")
+    public ResponseEntity<Map<String, Object>> getAllOpenJobsPaginated(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(jobPostingService.getAllOpenJobsPaginated(page, size));
     }
 }

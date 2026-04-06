@@ -2,33 +2,13 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/main-layout}">
 <head>
-    <title>Danh sách ứng viên</title>
-    <style>
-        .avatar-lg { width: 80px; height: 80px; object-fit: cover; }
-        .info-label { font-size: 0.75rem; color: #6c757d; margin-bottom: 2px; }
-        .info-value { font-weight: 600; font-size: 0.9rem; }
-        .cover-letter-box {
-            background: #f8f9fa;
-            border-left: 4px solid #0d6efd;
-            padding: 12px 16px;
-            border-radius: 4px;
-            font-style: italic;
-        }
-    </style>
+    <title>Danh sách ứng tuyển</title>
 </head>
 <body>
 <div layout:fragment="content" class="py-5">
     <div class="mb-4">
-        <a th:href="@{/recruiter/jobs}" class="text-decoration-none text-muted small">
-            <i class="fas fa-arrow-left me-1"></i> Quay lại danh sách tin
-        </a>
-        <h2 class="fw-bold mt-2"
-            th:text="${job != null ? 'Ứng viên cho: ' + job.title : 'Danh sách ứng viên'}">
-            Ứng viên tuyển dụng
-        </h2>
-        <span class="text-muted" th:if="${applications != null}">
-            Tổng: <strong th:text="${applications.size()}">0</strong> ứng viên
-        </span>
+        <a th:href="@{/recruiter/jobs}" class="text-decoration-none text-muted small"><i class="fas fa-arrow-left me-1"></i> Quay lại danh sách tin</a>
+        <h2 class="fw-bold mt-2" th:text="${job != null ? 'Ứng viên cho: ' + job.title : 'Danh sách ứng viên'}">Ứng viên tuyển dụng</h2>
     </div>
 
     <div class="card border-0 shadow-sm">
@@ -37,9 +17,9 @@
                 <table class="table table-hover align-middle mb-0">
                     <thead class="bg-light">
                         <tr>
-                            <th class="ps-4">Ứng viên</th>
+                            <th class="ps-4">Họ và tên</th>
                             <th>Ngày nộp</th>
-                            <th>Chức danh</th>
+                            <th>Tin nhắn/Thư</th>
                             <th>Trạng thái</th>
                             <th class="text-center pe-4">Thao tác</th>
                         </tr>
@@ -49,61 +29,40 @@
                             <tr th:each="app : ${applications}">
                                 <td class="ps-4">
                                     <div class="d-flex align-items-center">
-                                        <img th:src="${app.avatarUrl != null ? app.avatarUrl :
-                                                      'https://ui-avatars.com/api/?name=' + app.candidateName + '&size=40&background=random'}"
-                                             class="rounded-circle me-3" style="width: 42px; height: 42px; object-fit: cover;">
+                                        <img src="https://ui-avatars.com/api/?name=Candidate&size=40" class="rounded-circle me-3" style="width: 40px;">
                                         <div>
                                             <h6 class="mb-0 fw-bold" th:text="${app.candidateName}">Nguyễn Văn B</h6>
-                                            <small class="text-muted" th:text="${app.candidateEmail}">email@example.com</small>
+                                            <small class="text-muted" th:text="${app.candidateEmail}">candidate@email.com</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td th:text="${#temporals.format(app.appliedAt, 'dd/MM/yyyy')}">22/03/2026</td>
+                                <td th:text="${app.appliedAt != null ? #temporals.format(app.appliedAt, 'dd/MM/yyyy') : ''}">22/03/2026</td>
+                                <td class="text-truncate" style="max-width: 150px;" th:title="${app.coverLetter}" th:text="${app.coverLetter != null and !app.coverLetter.empty ? app.coverLetter : 'Không có'}">...</td>
                                 <td>
-                                    <span class="text-muted small"
-                                          th:text="${app.candidateHeadline != null ? app.candidateHeadline : '—'}">
-                                    </span>
-                                </td>
-                                <td>
-                                    <select class="form-select form-select-sm border-0 bg-light"
+                                    <select class="form-select form-select-sm border-0 bg-light" 
                                             th:onchange="'updateApplicationStatus(' + ${app.id} + ', this.value)'">
-                                        <option value="APPLIED"      th:selected="${app.status.name() == 'APPLIED'}">Đã ứng tuyển</option>
-                                        <option value="SHORTLISTED"  th:selected="${app.status.name() == 'SHORTLISTED'}">Lọc hồ sơ</option>
+                                        <option value="APPLIED" th:selected="${app.status.name() == 'APPLIED'}">Đã ứng tuyển</option>
+                                        <option value="SHORTLISTED" th:selected="${app.status.name() == 'SHORTLISTED'}">Lọc hồ sơ</option>
                                         <option value="INTERVIEWING" th:selected="${app.status.name() == 'INTERVIEWING'}">Phỏng vấn</option>
-                                        <option value="OFFERED"      th:selected="${app.status.name() == 'OFFERED'}">Đề nghị nhận việc</option>
-                                        <option value="REJECTED"     th:selected="${app.status.name() == 'REJECTED'}">Từ chối</option>
+                                        <option value="OFFERED" th:selected="${app.status.name() == 'OFFERED'}">Đề nghị nhận việc</option>
+                                        <option value="REJECTED" th:selected="${app.status.name() == 'REJECTED'}">Từ chối</option>
                                     </select>
                                 </td>
                                 <td class="text-center pe-4">
                                     <div class="btn-group">
-                                        <!-- Nút xem hồ sơ đầy đủ -->
-                                        <button type="button"
-                                                class="btn btn-sm btn-primary"
-                                                data-bs-toggle="modal"
-                                                th:attr="data-bs-target='#profileModal-' + ${app.id}"
-                                                title="Xem hồ sơ">
-                                            <i class="fas fa-user me-1"></i> Hồ sơ
-                                        </button>
-                                        <!-- Nút xem CV -->
-                                        <a th:if="${app.resumeUrl != null}"
-                                           th:href="${app.resumeUrl}"
-                                           class="btn btn-sm btn-outline-primary" target="_blank" title="Tải CV">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </a>
-                                        <span th:if="${app.resumeUrl == null}"
-                                              class="btn btn-sm btn-outline-secondary disabled">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </span>
+                                        <a th:href="${app.resumeUrl != null ? app.resumeUrl : '#'}" th:classappend="${app.resumeUrl == null ? 'disabled' : ''}" class="btn btn-sm btn-outline-primary" target="_blank" title="Xem CV"><i class="fas fa-file-pdf"></i></a>
+                                        <button class="btn btn-sm btn-outline-info" title="Lên lịch phỏng vấn"><i class="fas fa-calendar-plus"></i></button>
+                                        <button class="btn btn-sm btn-outline-secondary" title="Chi tiết"><i class="fas fa-info-circle"></i></button>
                                     </div>
                                 </td>
                             </tr>
                         </th:block>
-
+                        
+                        <!-- Empty state -->
                         <th:block th:if="${applications == null or applications.empty}">
                             <tr>
                                 <td colspan="5" class="text-center py-5">
-                                    <i class="fas fa-users fa-3x text-muted mb-3 d-block"></i>
-                                    <p class="text-muted mb-0">Chưa có ứng viên nào ứng tuyển cho vị trí này.</p>
+                                    <p class="text-muted">Chưa có ứng viên nào ứng tuyển cho vị trí này.</p>
                                 </td>
                             </tr>
                         </th:block>
@@ -112,123 +71,6 @@
             </div>
         </div>
     </div>
-
-    <!-- ========== MODAL HỒ SƠ ỨNG VIÊN ========== -->
-    <th:block th:if="${applications != null}" th:each="app : ${applications}">
-        <div class="modal fade" th:id="'profileModal-' + ${app.id}" tabindex="-1">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-
-                    <!-- Header -->
-                    <div class="modal-header border-0 pb-0">
-                        <h5 class="modal-title fw-bold">Hồ sơ ứng viên</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-
-                    <div class="modal-body px-4">
-
-                        <!-- Avatar + Tên + Headline -->
-                        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
-                            <img th:src="${app.avatarUrl != null ? app.avatarUrl :
-                                          'https://ui-avatars.com/api/?name=' + app.candidateName + '&size=80&background=random'}"
-                                 class="rounded-circle avatar-lg me-4 border">
-                            <div>
-                                <h4 class="fw-bold mb-1" th:text="${app.candidateName}">Nguyễn Văn A</h4>
-                                <p class="text-primary mb-1"
-                                   th:text="${app.candidateHeadline != null ? app.candidateHeadline : 'Chưa có tiêu đề'}">
-                                </p>
-                                <small class="text-muted">
-                                    <i class="fas fa-envelope me-1"></i>
-                                    <span th:text="${app.candidateEmail}"></span>
-                                </small>
-                            </div>
-                        </div>
-
-                        <!-- Thông tin cá nhân -->
-                        <h6 class="fw-bold text-uppercase text-muted mb-3" style="font-size:0.75rem; letter-spacing:1px;">
-                            <i class="fas fa-id-card me-2"></i>Thông tin cá nhân
-                        </h6>
-                        <div class="row mb-4">
-                            <div class="col-md-4 mb-3">
-                                <p class="info-label">Số điện thoại</p>
-                                <p class="info-value">
-                                    <i class="fas fa-phone me-1 text-primary"></i>
-                                    <span th:text="${app.candidatePhone != null ? app.candidatePhone : '—'}"></span>
-                                </p>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <p class="info-label">Ngày sinh</p>
-                                <p class="info-value">
-                                    <i class="fas fa-birthday-cake me-1 text-primary"></i>
-                                    <span th:text="${app.candidateDob != null ?
-                                                    #temporals.format(app.candidateDob, 'dd/MM/yyyy') : '—'}">
-                                    </span>
-                                </p>
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <p class="info-label">Giới tính</p>
-                                <p class="info-value">
-                                    <i class="fas fa-venus-mars me-1 text-primary"></i>
-                                    <span th:text="${app.candidateGender != null ? app.candidateGender : '—'}"></span>
-                                </p>
-                            </div>
-                            <div class="col-12">
-                                <p class="info-label">Địa chỉ</p>
-                                <p class="info-value">
-                                    <i class="fas fa-map-marker-alt me-1 text-primary"></i>
-                                    <span th:text="${app.candidateAddress != null ? app.candidateAddress : '—'}"></span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <hr>
-
-                        <!-- Giới thiệu bản thân -->
-                        <h6 class="fw-bold text-uppercase text-muted mb-3" style="font-size:0.75rem; letter-spacing:1px;">
-                            <i class="fas fa-user me-2"></i>Giới thiệu bản thân
-                        </h6>
-                        <p class="mb-4 text-muted"
-                           th:text="${app.candidateSummary != null ? app.candidateSummary : 'Ứng viên chưa có phần giới thiệu.'}">
-                        </p>
-
-                        <hr>
-
-                        <!-- Thư giới thiệu -->
-                        <h6 class="fw-bold text-uppercase text-muted mb-3" style="font-size:0.75rem; letter-spacing:1px;">
-                            <i class="fas fa-envelope-open-text me-2"></i>Thư giới thiệu
-                        </h6>
-                        <div class="cover-letter-box mb-4"
-                             th:text="${app.coverLetter != null and !app.coverLetter.isEmpty() ?
-                                       app.coverLetter : 'Ứng viên không gửi kèm thư giới thiệu.'}">
-                        </div>
-
-                        <!-- Nộp lúc -->
-                        <p class="text-muted small">
-                            <i class="fas fa-clock me-1"></i>Nộp đơn lúc:
-                            <strong th:text="${#temporals.format(app.appliedAt, 'HH:mm dd/MM/yyyy')}"></strong>
-                        </p>
-                    </div>
-
-                    <!-- Footer -->
-                    <div class="modal-footer border-0">
-                        <a th:if="${app.resumeUrl != null}"
-                           th:href="${app.resumeUrl}"
-                           class="btn btn-primary" target="_blank">
-                            <i class="fas fa-file-pdf me-2"></i>Xem CV đính kèm
-                        </a>
-                        <span th:if="${app.resumeUrl == null}"
-                              class="btn btn-secondary disabled">
-                            <i class="fas fa-file-pdf me-2"></i>Chưa có CV
-                        </span>
-                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Đóng</button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-    </th:block>
-    <!-- ========== END MODAL ========== -->
-
 </div>
 
 <th:block layout:fragment="scripts">

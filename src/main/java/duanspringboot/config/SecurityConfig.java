@@ -45,14 +45,17 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập View HTML
-                        .requestMatchers("/", "/login", "/register", "/jobs/**", "/candidate/**", "/recruiter/**")
+                        .requestMatchers("/", "/login", "/register", "/jobs/**", "/notifications")
                         .permitAll()
 
                         // API public
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/jobs/search").permitAll()
+                        .requestMatchers("/api/jobs/search/paginated").permitAll()
+                        .requestMatchers("/api/jobs/public/**").permitAll()
                         .requestMatchers("/api/jobs/{id}").permitAll()
                         .requestMatchers("/api/job-fields/**").permitAll()
+                        .requestMatchers("/api/blogs/**").permitAll()
 
                         // Phân quyền API
                         .requestMatchers("/api/candidate/**").hasRole("CANDIDATE")
@@ -60,7 +63,21 @@ public class SecurityConfig {
                         .requestMatchers("/api/jobs/**").hasRole("RECRUITER")
                         .requestMatchers("/api/applications/**").authenticated()
                         .requestMatchers("/api/interviews/**").hasRole("RECRUITER")
+                        .requestMatchers("/api/recruiter-approval/**").hasRole("RECRUITER")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/recruiter-approvals/**").hasRole("ADMIN")
+                        .requestMatchers("/api/messages/**").authenticated()
 
+                        // MBTI API
+                        .requestMatchers("/api/mbti/**").hasRole("CANDIDATE")
+
+                        // MBTI Views
+                        .requestMatchers("/candidate/mbti-test").hasRole("CANDIDATE")
+                        .requestMatchers("/candidate/mbti-result").hasRole("CANDIDATE")
+
+                        .requestMatchers("/candidate/**").hasRole("CANDIDATE")
+                        .requestMatchers("/recruiter/**").hasRole("RECRUITER")
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint((request, response, authException) -> {

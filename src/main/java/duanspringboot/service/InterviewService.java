@@ -80,6 +80,31 @@ public class InterviewService {
         return mapToResponse(interviewRepository.save(interview));
     }
 
+    // 4. Lấy chi tiết một cuộc phỏng vấn
+    public InterviewResponse getInterviewById(Long id, Long recruiterId) {
+        Interview interview = interviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cuộc phỏng vấn"));
+
+        if (!interview.getApplication().getJobPosting().getCompany().getUser().getId().equals(recruiterId)) {
+            throw new RuntimeException("Bạn không có quyền xem cuộc phỏng vấn này");
+        }
+
+        return mapToResponse(interview);
+    }
+
+    // 5. Xóa/Hủy một cuộc phỏng vấn
+    @Transactional
+    public void deleteInterview(Long id, Long recruiterId) {
+        Interview interview = interviewRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy cuộc phỏng vấn"));
+
+        if (!interview.getApplication().getJobPosting().getCompany().getUser().getId().equals(recruiterId)) {
+            throw new RuntimeException("Bạn không có quyền hủy cuộc phỏng vấn này");
+        }
+
+        interviewRepository.delete(interview);
+    }
+
     private InterviewResponse mapToResponse(Interview interview) {
         Application app = interview.getApplication();
         return InterviewResponse.builder()
