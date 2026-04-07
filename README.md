@@ -27,6 +27,7 @@
 - Lưu tin tuyển dụng yêu thích
 - Đặt thông báo việc làm theo từ khóa (Job Alerts)
 - Nhắn tin trực tiếp với nhà tuyển dụng
+- Làm form trắc nghiệm MBTI
 
 ### Cho Nhà tuyển dụng
 - Đăng ký và xác thực công ty (phê duyệt bởi Admin)
